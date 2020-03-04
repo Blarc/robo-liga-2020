@@ -6,9 +6,9 @@ from Classes.Point import Point
 
 class Hive:
     def __init__(self, id: int, data: Dict):
-        self.id = id
-        self.pos = Point(data["x"], data["y"])
-        self.dir = data["dir"]
+        self.id: int = id
+        self.pos: Point = Point(data["x"], data["y"])
+        self.dir: float = data["dir"]
         self.type: HiveTypeEnum = self.parseType(data["type"])
 
     @staticmethod

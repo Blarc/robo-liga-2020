@@ -5,30 +5,7 @@ from Classes.Point import Point
 from ev3dev.ev3 import TouchSensor, Button, LargeMotor, MediumMotor, Sound
 
 
-def get_angle(p1, a1, p2) -> float:
-    """
-    Izračunaj kot, za katerega se mora zavrteti robot, da bo obrnjen proti točki p2.
-    Robot se nahaja v točki p1 in ima smer (kot) a1.
-    """
-    a = math.degrees(math.atan2(p2.y - p1.y, p2.x - p1.x))
-    a_rel = a - a1
-    if abs(a_rel) > 180:
-        if a_rel > 0:
-            a_rel = a_rel - 360
-        else:
-            a_rel = a_rel + 360
-
-    return a_rel
-
-
-def get_distance(p1: Point, p2: Point) -> float:
-    """
-    Evklidska razdalja med dvema točkama na poligonu.
-    """
-    return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
-
-
-def init_large_motor(port: str) -> LargeMotor:
+def initLargeMotor(port: str) -> LargeMotor:
     """
     Preveri, ali je motor priklopljen na izhod `port`.
     Vrne objekt za motor (LargeMotor).
@@ -37,12 +14,12 @@ def init_large_motor(port: str) -> LargeMotor:
     while not motor.connected:
         print('\nPriklopi motor na izhod ' + port +
               ' in pritisni + spusti gumb DOL.')
-        wait_for_button('down')
+        waitForButton('down')
         motor = LargeMotor(port)
     return motor
 
 
-def init_medium_motor(port: str) -> MediumMotor:
+def initMediumMotor(port: str) -> MediumMotor:
     """
     Preveri, ali je motor priklopljen na izhod `port`.
     Vrne objekt za motor (LargeMotor).
@@ -51,12 +28,12 @@ def init_medium_motor(port: str) -> MediumMotor:
     while not motor.connected:
         print('\nPriklopi motor na izhod ' + port +
               ' in pritisni + spusti gumb DOL.')
-        wait_for_button('down')
+        waitForButton('down')
         motor = MediumMotor(port)
     return motor
 
 
-def init_sensor_touch() -> TouchSensor:
+def initSensorTouch() -> TouchSensor:
     """
     Preveri, ali je tipalo za dotik priklopljeno na katerikoli vhod.
     Vrne objekt za tipalo.
@@ -64,12 +41,12 @@ def init_sensor_touch() -> TouchSensor:
     sensor = TouchSensor()
     while not sensor.connected:
         print('\nPriklopi tipalo za dotik in pritisni + spusti gumb DOL.')
-        wait_for_button('down')
+        waitForButton('down')
         sensor = TouchSensor()
     return sensor
 
 
-def wait_for_button(btn, btn_name: str = 'down'):
+def waitForButton(btn, btn_name: str = 'down'):
     """
     Čakaj v zanki dokler ni gumb z imenom `btn_name` pritisnjen in nato sproščen.
     """
@@ -90,7 +67,7 @@ def beep(duration=1000, freq=440):
     # Sound.tone(freq, duration).wait()
 
 
-def robot_die(motor_left, motor_right):
+def robotDie(motor_left, motor_right):
     """
     Končaj s programom na robotu. Ustavi motorje.
     """

@@ -20,7 +20,7 @@ from Classes.GameData import GameData
 from Classes.PID import PID
 from Classes.State import State
 from Classes.Team import Team
-from UtiltyFunctions import init_large_motor, robot_die
+from UtiltyFunctions import initLargeMotor, robotDie
 
 # ------------------------------------------------------------------------
 # CONSTANTS
@@ -43,8 +43,8 @@ print('OK!')
 
 # Nastavimo velika motorja. Priklopljena naj bosta na izhoda A in D.
 print('Priprava motorjev ... ', end='')
-motor_left = init_large_motor(MOTOR_LEFT_PORT)
-motor_right = init_large_motor(MOTOR_RIGHT_PORT)
+motor_left = initLargeMotor(MOTOR_LEFT_PORT)
+motor_right = initLargeMotor(MOTOR_RIGHT_PORT)
 print('OK!')
 
 # Nastavimo povezavo s strežnikom.
@@ -77,7 +77,7 @@ elif ROBOT_ID == team2.id:
     enemyTeamTag = 'team1'
 else:
     print('Robot ne tekmuje.')
-    robot_die(motor_left, motor_right)
+    robotDie(motor_left, motor_right)
 print('Robot tekmuje in ima interno oznako "' + homeTeamTag + '"')
 
 # -----------------------------------------------------------------------------
@@ -235,7 +235,7 @@ while do_main_loop and not btn.down:
 
                 current_apple = get_closest_bad_apple()
                 if current_apple is None:
-                    robot_die()
+                    robotDie()
 
                 target = get_apple_pos(current_apple)
                 print(str(target.x) + " " + str(target.y))
@@ -636,4 +636,4 @@ while do_main_loop and not btn.down:
             motor_right.stop(stop_action='brake')
 
 # Konec programa
-robot_die()
+robotDie()

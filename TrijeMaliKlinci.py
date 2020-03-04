@@ -15,7 +15,7 @@ import pycurl
 import ujson
 from enum import Enum
 import sys
-from UtiltyFunctions import init_large_motor
+from UtiltyFunctions import initLargeMotor
 
 
 def get_closest_good_apple():
@@ -375,8 +375,8 @@ print('OK!')
 
 # Nastavimo velika motorja. Priklopljena naj bosta na izhoda A in D.
 print('Priprava motorjev ... ', end='')
-motor_left = init_large_motor(MOTOR_LEFT_PORT)
-motor_right = init_large_motor(MOTOR_RIGHT_PORT)
+motor_left = initLargeMotor(MOTOR_LEFT_PORT)
+motor_right = initLargeMotor(MOTOR_RIGHT_PORT)
 motor_grab = init_medium_motor(MOTOR_GRAB_PORT)
 print('OK!')
 
