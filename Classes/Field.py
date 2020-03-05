@@ -10,3 +10,9 @@ class Field:
         self.bottomLeft = Point(data["bottomLeft"]["x"], data["bottomLeft"]["y"])
         self.bottomRight = Point(data["bottomRight"]["x"], data["bottomRight"]["y"])
 
+    def getCenter(self):
+        return Point(
+            self.topRight.x - self.topLeft.x,
+            self.topLeft.y - self.bottomLeft.y
+        )
+

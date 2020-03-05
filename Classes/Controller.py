@@ -1,9 +1,11 @@
 import math
 from collections import deque
 
+from .Chassis import Chassis
 from .Constants import *
 from .GameData import GameData
 from .HiveTypeEnum import HiveTypeEnum
+from .PidController import PidController
 from .Point import Point
 from .Robot import Robot
 from .State import State
@@ -34,8 +36,17 @@ class Controller:
 
         self.stateChanged = False
 
+        self.pidController: PidController = PidController()
+        self.chassis: Chassis = Chassis()
 
     def update(self, gameData: GameData, target: Point):
+
+        print(self.state)
+        if self.state != self.stateOld:
+            self.stateChanged = True
+        else:
+            self.stateChanged = False
+        self.stateOld = self.state
 
         self.gameData = gameData
 
@@ -52,8 +63,7 @@ class Controller:
 
         self.stateChanged = self.setStateChanged()
 
-
-    def distance(self, point: Point) -> int:
+    def distance(self, point: Point) -> float:
         return self.__pos.distance(point)
 
     def angle(self, point: Point) -> float:
@@ -78,16 +88,57 @@ class Controller:
             return min(self.gameData.diseasedHives, key=lambda hive: hive.pos.distance(self.__pos))
 
     def setTarget(self, target: Point):
+        print("Target coords: " + str(target.x) + " " + str(target.y))
         self.__target = target
 
     def atTarget(self):
         return self.targetDistance < DIST_EPS
 
+    def atTargetHist(self):
+        err = [d > DIST_EPS for d in self.robotDistHist]
+        return sum(err) == 0
+
+    def isTurned(self):
+        err = [abs(a) > DIR_EPS for a in self.robotDirHist]
+        if sum(err) == 0:
+            self.speedRight = 0
+            self.speedLeft = 0
+            return True
+
+        return False
+
+
     def setStateChanged(self):
         return self.state != self.stateOld
 
-    def setStates(self, new: State , old : State):
+    def setStates(self, new: State, old: State):
         self.state = new
         self.stateOld = old
 
-#controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)
+    def updatePidStraight(self):
+
+        turn = self.pidController.PID_frwd_turn.update(self.targetAngle)
+        base = self.pidController.PID_frwd_turn.update(self.targetDistance)
+
+        base = min(max(base, -SPEED_BASE_MAX), SPEED_BASE_MAX)
+        self.speedRight = -base - turn
+        self.speedLeft = -base + turn
+
+    def setSpeedToZero(self):
+        self.chassis.runMotors(0, 0)
+
+    def runMotors(self):
+        self.speedRight = round(min(max(self.speedRight, -SPEED_MAX), SPEED_MAX))
+        self.speedLeft = round(min(max(self.speedLeft, -SPEED_MAX), SPEED_MAX))
+
+        self.chassis.runMotors(self.speedRight, self.speedLeft)
+
+        self.speedRightOld = self.speedRight
+        self.speedLeftOld = self.speedLeft
+
+    def breakMotors(self):
+        self.chassis.breakMotors()
+
+
+
+# controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)
