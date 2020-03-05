@@ -156,30 +156,26 @@ while do_main_loop and not btn.down:
 
 
 
-            elif state == State.GET_BAD_APPLE:
+            elif controller.state == State.GET_BAD_APPLE:
                 # Nastavi target na najbližje jabolko
                 print("State GET_BAD_APPLE")
 
                 currentHive = controller.getClosestHive(HiveTypeEnum.HIVE_DISEASED)
                 if currentHive is None:
                     robotDie(motor_left, motor_right)
+                else:
+                    controller.setTarget(currentHive)
 
-                controller.update(gameData, currentHive)
-                target_dist = controller.targetDistance
-                target_angle = controller.targetAngle
-
-                speed_right = 0
-                speed_left = 0
 
                 # Preverimo, ali je robot na ciljni točki.
                 # Če ni, ga tja pošljemo.
-                if target_dist > DIST_EPS:
-                    state = State.GET_TURN
+                if not controller.atTarget():
+                    controller.state = State.GET_TURN
                     robot_near_target_old = False
                 else:
-                    state = State.ENEMY_HOME
+                    controller.state = State.ENEMY_HOME
 
-            elif state == State.HOME:
+            elif controller.state == State.HOME:
                 # Nastavi target na home
                 print("State HOME")
 
@@ -188,21 +184,18 @@ while do_main_loop and not btn.down:
                 target.y -= 515
                 print("Target coords: " + str(target.x) + " " + str(target.y))
 
-                target_dist = target.distance(robotPos)
-                target_angle = Controller.angle(robotPos, robotDir, target)
 
-                speed_right = 0
-                speed_left = 0
+                controller.setTarget(target)
 
                 # Preverimo, ali je robot na ciljni točki.
                 # Če ni, ga tja pošljemo.
-                if target_dist > DIST_EPS:
-                    state = State.HOME_TURN
+                if not controller.atTarget():
+                    controller.state = State.HOME_TURN
                     robot_near_target_old = False
                 else:
-                    state = State.GET_APPLE
+                    controller.state = State.GET_APPLE
 
-            elif state == State.ENEMY_HOME:
+            elif controller.state == State.ENEMY_HOME:
                 # Nastavi target na home
                 print("State ENEMY_HOME")
 
@@ -211,21 +204,19 @@ while do_main_loop and not btn.down:
                 target.y -= 515
                 print("Target coords: " + str(target.x) + " " + str(target.y))
 
-                target_dist = target.distance(robotPos)
-                target_angle = Controller.angle(robotPos, robotDir, target)
+                controller.setTarget(target)
 
-                speed_right = 0
-                speed_left = 0
+
 
                 # Preverimo, ali je robot na ciljni točki.
                 # Če ni, ga tja pošljemo.
-                if target_dist > DIST_EPS:
-                    state = State.ENEMY_HOME_TURN
+                if not controller.atTarget():
+                    controller.state = State.ENEMY_HOME_TURN
                     robot_near_target_old = False
                 else:
-                    state = State.GET_APPLE
+                    controller.state = State.GET_APPLE
 
-            elif state == State.GET_TURN:
+            elif controller.state == State.GET_TURN:
                 # Obračanje robota na mestu, da bo obrnjen proti cilju.
                 print("State GET_TURN")
 
@@ -247,36 +238,33 @@ while do_main_loop and not btn.down:
                 # if temp:
                 #    continue
 
-                target_dist = get_distance(robot_pos, target)
-                target_angle = get_angle(robot_pos, robot_dir, target)
-
                 # beleženje za izris grafa
                 # file.write(str(target_angle) + ',' + str(time_now) + '\n')
 
-                if stateChanged:
+                if controller.stateChanged:
                     # Če smo ravno prišli v to stanje, najprej ponastavimo PID.
                     PID_turn.reset()
 
                 # Ali smo že dosegli ciljni kot?
                 # Zadnjih nekaj obhodov zanke mora biti absolutna vrednost
                 # napake kota manjša od DIR_EPS.
-                err = [abs(a) > DIR_EPS for a in robot_dir_hist]
+                err = [abs(a) > DIR_EPS for a in controller.robotDirHist]
 
                 if sum(err) == 0:
                     # Vse vrednosti so znotraj tolerance, zamenjamo stanje.
-                    speed_right = 0
-                    speed_left = 0
+                    controller.speed_right = 0
+                    controller.speed_left = 0
                     # print(apples_on_path(1000, 100))
                     # if apples_on_path(1000, 100).__len__() > 0:
                     #     robot_die()
-                    state = State.GET_STRAIGHT
+                    controller.state = State.GET_STRAIGHT
 
                 else:
-                    u = PID_turn.update(measurement=target_angle)
-                    speed_right = -u
-                    speed_left = u
+                    u = PID_turn.update(measurement=controller.targetAngle)
+                    controller.speed_right = -u
+                    controller.speed_left = u
 
-            elif state == State.GET_STRAIGHT:
+            elif controller.state == State.GET_STRAIGHT:
                 # Vožnja robota naravnost proti ciljni točki.
                 print("State GET_STRAIGHT")
 
@@ -362,7 +350,7 @@ while do_main_loop and not btn.down:
                 target_angle = get_angle(robot_pos, robot_dir, target)
 
                 # beleženje za izris grafa
-                file.write(str(target_angle) + ',' + str(time_now) + '\n')
+                #file.write(str(target_angle) + ',' + str(time_now) + '\n')
 
                 if stateChanged:
                     # Če smo ravno prišli v to stanje, najprej ponastavimo PID.

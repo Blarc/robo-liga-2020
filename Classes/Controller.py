@@ -32,6 +32,9 @@ class Controller:
         self.targetDistance: int = 0
         self.targetAngle: float = 0
 
+        self.stateChanged = False
+
+
     def update(self, gameData: GameData, target: Point):
 
         self.gameData = gameData
@@ -47,6 +50,7 @@ class Controller:
         self.robotDistHist.popleft()
         self.robotDistHist.append(self.targetAngle)
 
+        self.stateChanged = self.setStateChanged()
 
 
     def distance(self, point: Point) -> int:
@@ -79,4 +83,11 @@ class Controller:
     def atTarget(self):
         return self.targetDistance < DIST_EPS
 
+    def setStateChanged(self):
+        return self.state != self.stateOld
 
+    def setStates(self, new: State , old : State):
+        self.state = new
+        self.stateOld = old
+
+#controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)
