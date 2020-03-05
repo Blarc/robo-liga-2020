@@ -1,32 +1,36 @@
 import math
 from collections import deque
 
-from Classes import Constants
-from Classes.GameData import GameData
-from Classes.HiveTypeEnum import HiveTypeEnum
-from Classes.Point import Point
-from Classes.Robot import Robot
-from nabiralec import State
+from .Constants import *
+from .GameData import GameData
+from .HiveTypeEnum import HiveTypeEnum
+from .Point import Point
+from .Robot import Robot
+from .State import State
 
 
 class Controller:
-    def __init__(self):
-        self.__pos: Point
-        self.__dir: float
+    def __init__(self, gameData: GameData):
+        self.__pos: Point = gameData.homeRobot.pos
+        self.__dir: float = gameData.homeRobot.dir
 
-        self.speedRight: int
-        self.speedLeft: int
+        self.speedRight: int = 0
+        self.speedLeft: int = 0
 
-        self.speedRightOld: int
-        self.speedLeftOld: int
+        self.speedRightOld: int = 0
+        self.speedLeftOld: int = 0
 
-        self.robotDirHist: deque = deque([180.0] * Constants.HIST_QUEUE_LENGTH)
-        self.robotDistHist: deque = deque([math.inf] * Constants.HIST_QUEUE_LENGTH)
+        self.robotDirHist: deque = deque([180.0] * HIST_QUEUE_LENGTH)
+        self.robotDistHist: deque = deque([math.inf] * HIST_QUEUE_LENGTH)
 
-        self.state: State
-        self.stateOld: State
+        self.__target: Point = Point(0, 0)
+        self.state: State = State.GET_APPLE
+        self.stateOld: State = State.GET_APPLE
 
-        self.gameData: GameData
+        self.gameData: GameData = gameData
+
+        self.targetDistance: int = 0
+        self.targetAngle: float = 0
 
     def update(self, gameData: GameData, target: Point):
 
@@ -35,13 +39,15 @@ class Controller:
         self.__pos = gameData.homeRobot.pos
         self.__dir = gameData.homeRobot.dir
 
-        targetDistance = self.distance(target)
-        targetAngle = self.angle(target)
+        self.targetDistance = self.distance(target)
+        self.targetAngle = self.angle(target)
 
         self.robotDirHist.popleft()
-        self.robotDirHist.append(targetDistance)
+        self.robotDirHist.append(self.targetDistance)
         self.robotDistHist.popleft()
-        self.robotDistHist.append(targetAngle)
+        self.robotDistHist.append(self.targetAngle)
+
+
 
     def distance(self, point: Point) -> int:
         return self.__pos.distance(point)
@@ -66,3 +72,11 @@ class Controller:
             return min(self.gameData.healthyHives, key=lambda hive: hive.pos.distance(self.__pos))
         elif hiveType == HiveTypeEnum.HIVE_DISEASED:
             return min(self.gameData.diseasedHives, key=lambda hive: hive.pos.distance(self.__pos))
+
+    def setTarget(self, target: Point):
+        self.__target = target
+
+    def atTarget(self):
+        return self.targetDistance < DIST_EPS
+
+

@@ -1,4 +1,4 @@
-from Classes.PID import PID
+from .PID import PID
 
 ROBOT_ID = 18
 # Naslov IP igralnega streĹľnika.
@@ -29,7 +29,7 @@ PID_STRAIGHT_KD = 0.0
 PID_STRAIGHT_INT_MAX = 100
 
 # DolĹľina FIFO vrste za hranjenje meritev (oddaljenost in kot do cilja).
-HIST_QUEUE_LENGTH = 3
+HIST_QUEUE_LENGTH: int = 3
 
 # Razdalje - tolerance
 # Dovoljena napaka v oddaljenosti do cilja [mm].

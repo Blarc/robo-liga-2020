@@ -1,11 +1,11 @@
 from typing import Dict, List
 
-from Classes.Field import Field
-from Classes.Hive import Hive
-from Classes.HiveTypeEnum import HiveTypeEnum
-from Classes.Point import Point
-from Classes.Robot import Robot
-from Classes.Team import Team
+from .Field import Field
+from .Hive import Hive
+from .HiveTypeEnum import HiveTypeEnum
+from .Point import Point
+from .Robot import Robot
+from .Team import Team
 
 
 class GameData:

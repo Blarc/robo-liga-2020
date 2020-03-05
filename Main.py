@@ -16,18 +16,22 @@ import ujson
 from enum import Enum
 import sys
 
-from Classes.GameData import GameData
-from Classes.PID import PID
-from Classes.State import State
-from Classes.Team import Team
-from UtiltyFunctions import initLargeMotor, robotDie
-
+from .Classes.HiveTypeEnum import HiveTypeEnum
+from .Classes.Connection import Connection
+from .Classes.GameData import GameData
+from .Classes.PID import PID
+from .Classes.State import State
+from .Classes.Team import Team
+from .UtiltyFunctions import initLargeMotor, robotDie
+from .Classes.Controller import Controller
+from .Classes.Constants import *
+from .Classes.Point import Point
 # ------------------------------------------------------------------------
 # CONSTANTS
 # ------------------------------------------------------------------------
 # Nastavitev najpomembnjĹˇih parametrov
 # ID robota. Spremenite, da ustreza Ĺˇtevilki oznaÄŤbe, ki je doloÄŤena vaĹˇi ekipi.
-from nabiralec import Connection
+
 
 
 
@@ -36,6 +40,8 @@ from nabiralec import Connection
 # NASTAVITVE TIPAL, MOTORJEV IN POVEZAVE S STREŽNIKOM
 # -----------------------------------------------------------------------------
 # Nastavimo tipala in gumbe.
+
+
 print('Priprava tipal ... ', end='', flush=True)
 btn = Button()
 # sensor_touch = init_sensor_touch()
@@ -81,79 +87,11 @@ else:
 print('Robot tekmuje in ima interno oznako "' + homeTeamTag + '"')
 
 # -----------------------------------------------------------------------------
-# PIDi
-# -----------------------------------------------------------------------------
-
-# Regulator PID za obraÄŤanje na mestu.
-# setpoint=0 pomeni, da naj bo kot med robotom in ciljem (target_angle) enak 0.
-# NaĹˇa regulirana veliÄŤina je torej kar napaka kota, ki mora biti 0.
-# To velja tudi za regulacijo voĹľnje naravnost.
-PID_turn = PID(
-    setpoint=0,
-    kp=PID_TURN_KP,
-    ki=PID_TURN_KI,
-    kd=PID_TURN_KD,
-    integral_limit=PID_TURN_INT_MAX)
-
-# PID za voĹľnjo naravnost - regulira nazivno hitrost za oba motorja,
-# ki je odvisna od oddaljenosti od cilja.
-# setpoint=0 pomeni, da mora biti razdalja med robotom in ciljem enaka 0.
-PID_frwd_base = PID(
-    setpoint=0,
-    kp=PID_STRAIGHT_KP,
-    ki=PID_STRAIGHT_KI,
-    kd=PID_STRAIGHT_KD,
-    integral_limit=PID_STRAIGHT_INT_MAX)
-
-# PID za obraÄŤanje med voĹľnjo naravnost.
-# setpoint=0 pomeni, da naj bo kot med robotom in ciljem (target_angle) enak 0.
-PID_frwd_turn = PID(
-    setpoint=0,
-    kp=PID_TURN_KP,
-    ki=PID_TURN_KI,
-    kd=PID_TURN_KD,
-    integral_limit=PID_TURN_INT_MAX)
-
-# -----------------------------------------------------------------------------
 # GLOBALNE SPREMENLJIVKE
 # -----------------------------------------------------------------------------
 gameData = GameData(game_state, homeTeamTag, enemyTeamTag)
-# Hitrost na obeh motorjih.
-speed_right = 0
-speed_left = 0
-# Stara hitrost
-speed_right_old = 0
-speed_left_old = 0
-# Zgodovina (okno) zadnjih nekaj vrednosti meritev,
-# implementirana kot vrsta FIFO.
-robot_dir_hist = deque([180.0] * HIST_QUEUE_LENGTH)
-robot_dist_hist = deque([math.inf] * HIST_QUEUE_LENGTH)
-# Meritve direction
-robot_dir_data_id = 0
-# Merimo čas obhoda zanke. Za visoko odzivnost robota je zelo pomembno,
-# da je ta čas čim krajši.
-t_old = time()
-# Začetno stanje.
-state = State.GET_APPLE
-# Prejšnje stanje.
-stateOld = -1
-# Id prejšnjega najbližjega jabolka
-picked_up_apples_id = []
-# Trenutno jabolko
-current_apple = None
-# Trenutni target
-target = None
-# Razdalja med robotom in ciljem.
-target_dist = 0
-# Kot med robotom in ciljem.
-target_angle = 0
-# Datoteke za zapis podatkov za graf
-file = open('pid_data' + str(robot_dir_data_id) + '.txt', 'w')
-# Če se zatakne timer
-timeTimeout = 0
-# Pospešek
-get_straight_accel_factor = 0.05
-
+controller = Controller(gameData)
+stateChanged = False  #TODO dej v controler
 # -----------------------------------------------------------------------------
 # GLAVNA ZANKA
 # -----------------------------------------------------------------------------
@@ -165,83 +103,70 @@ while do_main_loop and not btn.down:
 
     time_now = time()
     loop_time = time_now - t_old
-    t_old = time_now
+    t_old = time_now #todo odstrani ali dodaj
 
     # Osveži stanje tekme.
     game_state = conn.request()
     if game_state == -1:
         print('Napaka v paketu, ponovni poskus ...')
     else:
-        gameData = GameData(game_state)
+        gameData = GameData(game_state, homeTeamTag, enemyTeamTag)
+        controller.update(gameData)
 
-        # Pridobi pozicijo in orientacijo svojega robota;
-        # najprej pa ga poišči v tabeli vseh robotov na poligonu.
-        robotPos = gameData.homeRobot.pos
-        robotDir = gameData.homeRobot.dir
-        # Ali so podatki o robotu veljavni? Če niso, je zelo verjetno,
-        # da sistem ne zazna oznake na robotu.
-        robotAlive = (robotPos is not None) and (robotDir is not None)
+        #todo robotAlive = (robotPos is not None) and (robotDir is not None)
+        #todo dodej v controler
 
         # Če tekma poteka in je oznaka robota vidna na kameri,
         # potem izračunamo novo hitrost na motorjih.
         # Sicer motorje ustavimo.
-        if gameData.gameOn and robotAlive:
+        if gameData.gameOn: #and robotAlive:
 
-            # Zaznaj spremembo stanja.
-            if state != stateOld:
+"""          # Zaznaj spremembo stanja.
+            if controller.state != controller.stateOld:
                 timeTimeout = time()
                 stateChanged = True
             else:
                 stateChanged = False
 
-            stateOld = state
+            controller.stateOld = controller.state
+"""
 
-            # Spremljaj zgodovino meritev kota in oddaljenosti.
-            # Odstrani najstarejši element in dodaj novega - princip FIFO.
-            robot_dir_hist.popleft()
-            robot_dir_hist.append(target_angle)
-            robot_dist_hist.popleft()
-            robot_dist_hist.append(target_dist)
 
-            if state == State.GET_APPLE:
+            if controller.state == State.GET_APPLE:
                 # Nastavi target na najbližje jabolko
                 print("State GET_APPLE")
 
-                current_apple = get_closest_good_apple()
-                if current_apple is None:
-                    state = State.GET_BAD_APPLE
+                currentHive = controller.getClosestHive(HiveTypeEnum.HIVE_HEALTHY)
+                if currentHive is None:
+                    controller.state = State.GET_BAD_APPLE
                     continue
 
-                target = get_apple_pos(current_apple)
-                print(str(target.x) + " " + str(target.y))
 
-                target_dist = get_distance(robot_pos, target)
-                target_angle = get_angle(robot_pos, robot_dir, target)
+                controller.setTarget(currentHive)
+                print(str(currentHive.x) + " " + str(currentHive.y))
 
-                speed_right = 0
-                speed_left = 0
 
                 # Preverimo, ali je robot na ciljni točki.
                 # Če ni, ga tja pošljemo.
-                if target_dist > DIST_EPS:
-                    state = State.GET_TURN
+                if not controller.atTarget():
+                    controller.state = State.GET_TURN
                     robot_near_target_old = False
                 else:
-                    state = State.HOME
+                    controller.state = State.HOME
+
+
 
             elif state == State.GET_BAD_APPLE:
                 # Nastavi target na najbližje jabolko
                 print("State GET_BAD_APPLE")
 
-                current_apple = get_closest_bad_apple()
-                if current_apple is None:
-                    robotDie()
+                currentHive = controller.getClosestHive(HiveTypeEnum.HIVE_DISEASED)
+                if currentHive is None:
+                    robotDie(motor_left, motor_right)
 
-                target = get_apple_pos(current_apple)
-                print(str(target.x) + " " + str(target.y))
-
-                target_dist = get_distance(robot_pos, target)
-                target_angle = get_angle(robot_pos, robot_dir, target)
+                controller.update(gameData, currentHive)
+                target_dist = controller.targetDistance
+                target_angle = controller.targetAngle
 
                 speed_right = 0
                 speed_left = 0
@@ -258,11 +183,13 @@ while do_main_loop and not btn.down:
                 # Nastavi target na home
                 print("State HOME")
 
-                target = home
+                target = gameData.homeBasket.topLeft
+                target.x += 270
+                target.y -= 515
                 print("Target coords: " + str(target.x) + " " + str(target.y))
 
-                target_dist = get_distance(robot_pos, target)
-                target_angle = get_angle(robot_pos, robot_dir, target)
+                target_dist = target.distance(robotPos)
+                target_angle = Controller.angle(robotPos, robotDir, target)
 
                 speed_right = 0
                 speed_left = 0
@@ -279,11 +206,13 @@ while do_main_loop and not btn.down:
                 # Nastavi target na home
                 print("State ENEMY_HOME")
 
-                target = enemy_home
+                target = gameData.enemyBasket.topLeft
+                target.x += 270
+                target.y -= 515
                 print("Target coords: " + str(target.x) + " " + str(target.y))
 
-                target_dist = get_distance(robot_pos, target)
-                target_angle = get_angle(robot_pos, robot_dir, target)
+                target_dist = target.distance(robotPos)
+                target_angle = Controller.angle(robotPos, robotDir, target)
 
                 speed_right = 0
                 speed_left = 0
