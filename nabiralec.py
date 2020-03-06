@@ -15,23 +15,23 @@ __maintainer__ = "Nejc Ilc"
 __email__ = "nejc.ilc@fri.uni-lj.si"
 __status__ = "Active"
 
+import math
+import sys
+from collections import deque
+from enum import Enum
+from io import BytesIO
+from time import time
 
-# ÄŚe Ĺľelite na svojem raÄŤunalniku namestiti knjiĹľnico python-ev3dev
-# in uprorabljati "code auto-completition":
-# pip install python-ev3dev
-from ev3dev.ev3 import TouchSensor, Button, LargeMotor, Sound
 # Na EV3 robotu je potrebno namestiti paketa ujson in pycurl:
 # sudo apt-get update
 # sudo apt-get install python3-pycurl
 # sudo apt-get install python3-ujson
 import pycurl
 import ujson
-import sys
-import math
-from io import BytesIO
-from time import time, sleep
-from enum import Enum
-from collections import deque
+# ÄŚe Ĺľelite na svojem raÄŤunalniku namestiti knjiĹľnico python-ev3dev
+# in uprorabljati "code auto-completition":
+# pip install python-ev3dev
+from ev3dev.ev3 import TouchSensor, Button, LargeMotor, Sound
 
 # Nastavitev najpomembnjĹˇih parametrov
 # ID robota. Spremenite, da ustreza Ĺˇtevilki oznaÄŤbe, ki je doloÄŤena vaĹˇi ekipi.
@@ -86,6 +86,7 @@ class State(Enum):
 
     def __str__(self):
         return str(self.name)
+
     IDLE = 0
     TURN = 1
     DRIVE_STRAIGHT = 2
@@ -263,7 +264,7 @@ class PID():
                 if self._integral_limit is not None:
                     # Omejimo integralni del.
                     I = max(min(I, self._integral_limit),
-                            (-1)*(self._integral_limit))
+                            (-1) * (self._integral_limit))
 
             if self._Kd is None:
                 D = 0
@@ -287,7 +288,7 @@ class Point():
         self.y = position['y']
 
     def __str__(self):
-        return '('+str(self.x)+', '+str(self.y)+')'
+        return '(' + str(self.x) + ', ' + str(self.y) + ')'
 
 
 def get_angle(p1, a1, p2) -> float:
@@ -295,7 +296,7 @@ def get_angle(p1, a1, p2) -> float:
     IzraÄŤunaj kot, za katerega se mora zavrteti robot, da bo obrnjen proti toÄŤki p2.
     Robot se nahaja v toÄŤki p1 in ima smer (kot) a1.
     """
-    a = math.degrees(math.atan2(p2.y-p1.y, p2.x - p1.x))
+    a = math.degrees(math.atan2(p2.y - p1.y, p2.x - p1.x))
     a_rel = a - a1
     if abs(a_rel) > 180:
         if a_rel > 0:
@@ -310,7 +311,7 @@ def get_distance(p1: Point, p2: Point) -> float:
     """
     Evklidska razdalja med dvema toÄŤkama na poligonu.
     """
-    return math.sqrt((p2.x-p1.x)**2 + (p2.y-p1.y)**2)
+    return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
 
 
 def init_large_motor(port: str) -> LargeMotor:
@@ -358,7 +359,7 @@ def beep(duration=1000, freq=440):
     """
     Sound.tone(freq, duration)
     # ÄŚe Ĺľelimo, da blokira, dokler se pisk ne konÄŤa.
-    #Sound.tone(freq, duration).wait()
+    # Sound.tone(freq, duration).wait()
 
 
 def robot_die():
@@ -381,7 +382,7 @@ def robot_die():
 # Nastavimo tipala in gumbe.
 print('Priprava tipal ... ', end='', flush=True)
 btn = Button()
-#sensor_touch = init_sensor_touch()
+# sensor_touch = init_sensor_touch()
 print('OK!')
 
 # Nastavimo velika motorja. Priklopljena naj bosta na izhoda A in D.
@@ -399,7 +400,6 @@ print('OK!')
 # Informativno izmerimo zakasnitev pri pridobivanju podatkov (povpreÄŤje num_iters meritev)
 print('Zakasnitev v komunikaciji s streznikom ... ', end='', flush=True)
 print('%.4f s' % (conn.test_delay(num_iters=10)))
-
 
 # -----------------------------------------------------------------------------
 # PRIPRAVA NA TEKMO
@@ -429,7 +429,6 @@ targets_list = [
 print('Seznam ciljnih tock:')
 for trgt in targets_list:
     print('\t' + str(trgt))
-
 
 # -----------------------------------------------------------------------------
 # GLAVNA ZANKA
@@ -653,15 +652,15 @@ while do_main_loop and not btn.down:
 
             # Omejimo vrednosti za hitrosti na motorjih.
             speed_right = round(
-                            min(
-                                max(speed_right, -SPEED_MAX),
-                                SPEED_MAX)
-                            )
+                min(
+                    max(speed_right, -SPEED_MAX),
+                    SPEED_MAX)
+            )
             speed_left = round(
-                            min(
-                                max(speed_left, -SPEED_MAX),
-                                SPEED_MAX)
-                            )
+                min(
+                    max(speed_left, -SPEED_MAX),
+                    SPEED_MAX)
+            )
 
             # IzraÄŤunane hitrosti zapiĹˇemo na motorje.
             motor_right.run_forever(speed_sp=speed_right)

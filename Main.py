@@ -10,13 +10,13 @@ from time import time
 
 from ev3dev.ev3 import Button
 
-from .Classes.Connection import Connection
-from .Classes.Constants import *
-from .Classes.Controller import Controller
-from .Classes.GameData import GameData
-from .Classes.HiveTypeEnum import HiveTypeEnum
-from .Classes.State import State
-from .Classes.Team import Team
+from Connection import Connection
+from Constants import *
+from Controller import Controller
+from GameData import GameData
+from HiveTypeEnum import HiveTypeEnum
+from State import State
+from Team import Team
 
 # ------------------------------------------------------------------------
 # CONSTANTS
@@ -187,7 +187,7 @@ while do_main_loop and not btn.down:
                     controller.state = State.GET_STRAIGHT
 
                 else:
-                    u = controller.pidController\
+                    u = controller.pidController \
                         .PID_turn.update(measurement=controller.targetAngle)
                     controller.speed_right = -u
                     controller.speed_left = u

@@ -1,14 +1,13 @@
 import math
 from collections import deque
 
-from .Chassis import Chassis
-from .Constants import *
-from .GameData import GameData
-from .HiveTypeEnum import HiveTypeEnum
-from .PidController import PidController
-from .Point import Point
-from .Robot import Robot
-from .State import State
+from Chassis import Chassis
+from Constants import *
+from GameData import GameData
+from HiveTypeEnum import HiveTypeEnum
+from PidController import PidController
+from Point import Point
+from State import State
 
 
 class Controller:
@@ -107,7 +106,6 @@ class Controller:
 
         return False
 
-
     def setStateChanged(self):
         return self.state != self.stateOld
 
@@ -138,7 +136,5 @@ class Controller:
 
     def breakMotors(self):
         self.chassis.breakMotors()
-
-
 
 # controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)

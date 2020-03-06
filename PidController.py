@@ -2,7 +2,7 @@
 # setpoint=0 pomeni, da naj bo kot med robotom in ciljem (target_angle) enak 0.
 # Nasa regulirana velicina je torej kar napaka kota, ki mora biti 0.
 # To velja tudi za regulacijo voznje naravnost.
-from Classes.Constants import *
+from Constants import *
 
 
 class PidController:

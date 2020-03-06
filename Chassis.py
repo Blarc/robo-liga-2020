@@ -1,8 +1,8 @@
 import sys
 
-from ev3dev.ev3 import TouchSensor, Button, LargeMotor, MediumMotor, Sound
+from ev3dev.ev3 import TouchSensor, LargeMotor, MediumMotor, Sound
 
-from Classes.Constants import MOTOR_LEFT_PORT, MOTOR_RIGHT_PORT
+from Constants import MOTOR_LEFT_PORT, MOTOR_RIGHT_PORT
 
 
 class Chassis:

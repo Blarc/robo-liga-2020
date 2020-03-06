@@ -1,6 +1,6 @@
 from typing import Dict
 
-from Classes.Point import Point
+from Point import Point
 
 
 class Robot:

@@ -1,7 +1,7 @@
 from typing import Dict
 
-from Classes.HiveTypeEnum import HiveTypeEnum
-from Classes.Point import Point
+from HiveTypeEnum import HiveTypeEnum
+from Point import Point
 
 
 class Hive:
