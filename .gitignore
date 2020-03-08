@@ -328,3 +328,5 @@ dmypy.json
 
 
 */.idea/*
+
+.gradle
