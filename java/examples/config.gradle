@@ -1,10 +1,10 @@
 // Project configuration
 brick.pref {
     // Main class //
-    mainClass = "example.programming.HelloWorld"
+    mainClass = "example.Main"
 
     // Brick connection parameters //
-    sshHost = "198.162.14.214"
+    sshHost = "192.168.14.214"
     sshUser = "robot"
     sshPassword = "sparvrecka"
 }

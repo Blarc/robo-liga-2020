@@ -11,7 +11,7 @@ public class MyFirstRobot {
 
         System.out.println("Creating Motor A & B");
         final EV3LargeRegulatedMotor motorLeft = new EV3LargeRegulatedMotor(MotorPort.A);
-        final EV3LargeRegulatedMotor motorRight = new EV3LargeRegulatedMotor(MotorPort.B);
+        final EV3LargeRegulatedMotor motorRight = new EV3LargeRegulatedMotor(MotorPort.D);
 
         //To Stop the motor in case of pkill java for example
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
