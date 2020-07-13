@@ -1,8 +1,7 @@
 import sys
 
 from ev3dev.ev3 import TouchSensor, LargeMotor, MediumMotor, Sound
-
-from Constants import MOTOR_LEFT_PORT, MOTOR_RIGHT_PORT
+from .Constants import MOTOR_LEFT_PORT, MOTOR_RIGHT_PORT
 
 
 class Chassis:
@@ -49,7 +48,8 @@ class Chassis:
             sensor = TouchSensor()
         return sensor
 
-    def waitForButton(self, button, buttonName: str = 'down'):
+    @staticmethod
+    def waitForButton(button, buttonName: str = 'down'):
         """
         Čakaj v zanki dokler ni gumb z imenom `btn_name` pritisnjen in nato sproščen.
         """

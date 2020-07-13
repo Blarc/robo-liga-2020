@@ -2,7 +2,9 @@
 # setpoint=0 pomeni, da naj bo kot med robotom in ciljem (target_angle) enak 0.
 # Nasa regulirana velicina je torej kar napaka kota, ki mora biti 0.
 # To velja tudi za regulacijo voznje naravnost.
-from Constants import *
+from .Constants import PID_TURN_KP, PID_TURN_KI, PID_TURN_KD, PID_TURN_INT_MAX, PID_STRAIGHT_KP, PID_STRAIGHT_KI, \
+    PID_STRAIGHT_INT_MAX, PID_STRAIGHT_KD
+from .PID import PID
 
 
 class PidController:

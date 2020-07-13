@@ -1,10 +1,10 @@
 import math
 from collections import deque
 
-from Chassis import Chassis
-from Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX
-from Entities import GameData, Point, State, HiveTypeEnum, Hive
-from PidController import PidController
+from .Chassis import Chassis
+from .Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX
+from .Entities import GameData, Point, State, HiveTypeEnum, Hive
+from .PidController import PidController
 
 
 class Controller:

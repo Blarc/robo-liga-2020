@@ -1,5 +1,9 @@
 import sys
+from io import BytesIO
 from time import time
+
+import pycurl as pycurl
+import ujson as ujson
 
 
 class Connection:

@@ -10,12 +10,12 @@ from time import time
 
 from ev3dev.ev3 import Button
 
-from Connection import Connection
-from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
-from Controller import Controller
+from .Connection import Connection
+from .Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
+from .Controller import Controller
 
 # ------------------------------------------------------------------------------------------------------------------- #
-from Entities import Team, GameData, HiveTypeEnum, State, Point
+from .Entities import Team, GameData, HiveTypeEnum, State, Point
 
 print('Priprava tipal ... ', end='', flush=True)
 btn: Button = Button()
