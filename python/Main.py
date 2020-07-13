@@ -13,12 +13,9 @@ from ev3dev.ev3 import Button
 from Connection import Connection
 from Constants import *
 from Controller import Controller
-from GameData import GameData
-from HiveTypeEnum import HiveTypeEnum
-from State import State
-from Team import Team
 
 # ------------------------------------------------------------------------------------------------------------------- #
+from Entities import Team, GameData, HiveTypeEnum, State
 
 print('Priprava tipal ... ', end='', flush=True)
 btn = Button()
