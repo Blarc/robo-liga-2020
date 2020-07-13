@@ -95,7 +95,7 @@ class Controller:
     def atTargetNEAR(self) -> bool:
         return self.targetDistance < DIST_NEAR
 
-    def atTargetHist(self) -> bool:
+    def atTargetHIST(self) -> bool:
         err = [d > DIST_EPS for d in self.robotDistHist]
         return sum(err) == 0
 

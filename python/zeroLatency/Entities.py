@@ -46,6 +46,10 @@ class State(Enum):
     ENEMY_HOME_TURN = 8
     ENEMY_HOME_STRAIGHT = 9
     GET_DISEASED_HIVE = 10
+    IDLE = 90
+    LOAD_NEXT_TARGET = 91
+    TURN = 92
+    DRIVE_STRAIGHT = 93
 
 
 class HiveTypeEnum(Enum):
