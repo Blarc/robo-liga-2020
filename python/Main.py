@@ -11,19 +11,19 @@ from time import time
 from ev3dev.ev3 import Button
 
 from Connection import Connection
-from Constants import *
+from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
 from Controller import Controller
 
 # ------------------------------------------------------------------------------------------------------------------- #
-from Entities import Team, GameData, HiveTypeEnum, State
+from Entities import Team, GameData, HiveTypeEnum, State, Point
 
 print('Priprava tipal ... ', end='', flush=True)
-btn = Button()
+btn: Button = Button()
 print('OK!')
 
-url = SERVER_IP + GAME_ID
+url: str = SERVER_IP + GAME_ID
 print('Vspostavljanje povezave z naslovom ' + url + ' ... ', end='', flush=True)
-conn = Connection(url)
+conn: Connection = Connection(url)
 print('OK!')
 
 print('Zakasnitev v komunikaciji s streznikom ... ', end='', flush=True)
@@ -33,11 +33,11 @@ print('%.4f s' % (conn.testDelay(numOfIterations=10)))
 
 gameState = conn.request()
 
-homeTeamTag = 'undefined'
-enemyTeamTag = 'undefined'
+homeTeamTag: str = 'undefined'
+enemyTeamTag: str = 'undefined'
 
-team1 = Team(gameState["teams"]["team1"])
-team2 = Team(gameState["teams"]["team2"])
+team1: Team = Team(gameState["teams"]["team1"])
+team2: Team = Team(gameState["teams"]["team2"])
 
 if ROBOT_ID == team1.id:
     homeTeamTag = 'team1'
@@ -54,8 +54,12 @@ print('Robot tekmuje in ima interno oznako "' + homeTeamTag + '"')
 # ------------------------------------------------------------------------------------------------------------------- #
 # GLOBAL VARIABLES
 
-gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-controller = Controller(gameData)
+gameData: GameData = GameData(gameState, homeTeamTag, enemyTeamTag)
+controller: Controller = Controller(gameData, initialState=State.GET_HEALTHY_HIVE)
+
+nearTargetOld: bool = False
+
+target: Point = None
 timeOld = time()
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -64,7 +68,7 @@ timeOld = time()
 print('Izvajam glavno zanko. Prekini jo s pritiskom na tipko DOL.')
 print('Cakam na zacetek tekme ...')
 
-doMainLoop = True
+doMainLoop: bool = True
 while doMainLoop and not btn.down:
 
     timeNow = time()
@@ -77,17 +81,14 @@ while doMainLoop and not btn.down:
         print('Napaka v paketu, ponovni poskus ...')
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-        controller.update(gameData)
-
-        # todo robotAlive = (robotPos is not None) and (robotDir is not None)
-        # todo dodej v controler
+        controller.update(gameData, target)
 
         # Če tekma poteka in je oznaka robota vidna na kameri,
         # potem izračunamo novo hitrost na motorjih.
         # Sicer motorje ustavimo.
 
         # and robotAlive:
-        if gameData.gameOn:
+        if gameData.gameOn and controller.isRobotAlive():
 
             # ------------------------------------------------------------------------------------------------------- #
             # GET HEALTHY HIVE STATE
@@ -100,9 +101,9 @@ while doMainLoop and not btn.down:
                     controller.state = State.GET_DISEASED_HIVE
                     continue
 
-                controller.setTarget(currentHive)
+                controller.setTarget(currentHive.pos)
 
-                if not controller.atTarget():
+                if not controller.atTargetEPS():
                     controller.state = State.GET_TURN
                     robotNearTargetOld = False
                 else:
@@ -118,9 +119,9 @@ while doMainLoop and not btn.down:
                     # TODO tole ni uredu
                     controller.chassis.robotDie()
                 else:
-                    controller.setTarget(currentHive)
+                    controller.setTarget(currentHive.pos)
 
-                if not controller.atTarget():
+                if not controller.atTargetEPS():
                     controller.state = State.GET_TURN
                     robotNearTargetOld = False
                 else:
@@ -137,7 +138,7 @@ while doMainLoop and not btn.down:
 
                 controller.setTarget(target)
 
-                if not controller.atTarget():
+                if not controller.atTargetEPS():
                     controller.state = State.HOME_TURN
                     robotNearTargetOld = False
                 else:
@@ -154,7 +155,7 @@ while doMainLoop and not btn.down:
 
                 controller.setTarget(target)
 
-                if not controller.atTarget():
+                if not controller.atTargetEPS():
                     controller.state = State.ENEMY_HOME_TURN
                     robotNearTargetOld = False
                 else:
@@ -168,39 +169,33 @@ while doMainLoop and not btn.down:
 
                 if controller.stateChanged:
                     # Če smo ravno prišli v to stanje, najprej ponastavimo PID.
-                    controller.pidController.PIDTurn.reset()
+                    controller.resetPIDTurn()
 
                 if controller.isTurned():
                     controller.state = State.GET_STRAIGHT
 
                 else:
-                    u = controller.pidController.PIDTurn.update(measurement=controller.targetAngle)
-                    controller.speed_right = -u
-                    controller.speed_left = u
+                    controller.updatePIDTurn()
 
             # ------------------------------------------------------------------------------------------------------- #
             # STRAIGHT STATE
 
             elif controller.state == State.GET_STRAIGHT:
-                # Vožnja robota naravnost proti ciljni točki.
-                print("State GET_STRAIGHT")
 
                 # Vmes bi radi tudi zavijali, zato uporabimo dva regulatorja.
                 if controller.stateChanged:
-                    # Ponastavi regulatorja PID.
-                    controller.pidController.PIDForwardBase.reset()
-                    controller.pidController.PIDForwardTurn.reset()
+                    controller.resetPIDStraight()
                     timeNearTarget = TIMER_NEAR_TARGET
 
                 # Ali smo blizu cilja?
-                robotNearTarget = targetDist < DIST_NEAR
-                if not robotNearTargetOld and robotNearTarget:
+                if not robotNearTargetOld and controller.atTargetNEAR():
                     # Vstopili smo v bližino cilja.
                     # Začnimo odštevati varnostno budilko.
                     timeNearTarget = TIMER_NEAR_TARGET
-                if robotNearTarget:
+
+                if controller.atTargetNEAR():
                     timeNearTarget = timeNearTarget - loopTime
-                robotNearTargetOld = robotNearTarget
+                robotNearTargetOld = controller.atTargetNEAR()
 
                 # Ali smo že na cilju?
                 if controller.atTargetHist():
@@ -213,7 +208,7 @@ while doMainLoop and not btn.down:
 
                 else:
                     #  TODO multiplier v bližini cilja zmanjša PID, ker se tudi hitrost zmanjša
-                    controller.updatePidStraight()
+                    controller.updatePIDStraight()
 
             # ------------------------------------------------------------------------------------------------------- #
             # SPIN MOTORS
@@ -224,7 +219,7 @@ while doMainLoop and not btn.down:
             # ------------------------------------------------------------------------------------------------------- #
             # BREAK MOTORS
 
-            # Robot bodisi ni viden na kameri bodisi tema ne teče.
+            # Robot bodisi ni viden na kameri bodisi tekma ne teče.
             controller.breakMotors()
 
 # Konec programa

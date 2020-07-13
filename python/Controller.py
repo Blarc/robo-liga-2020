@@ -2,13 +2,13 @@ import math
 from collections import deque
 
 from Chassis import Chassis
-from Constants import *
-from Entities import GameData, Point, State, HiveTypeEnum
+from Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX
+from Entities import GameData, Point, State, HiveTypeEnum, Hive
 from PidController import PidController
 
 
 class Controller:
-    def __init__(self, gameData: GameData):
+    def __init__(self, gameData: GameData, initialState: State = State.GET_HEALTHY_HIVE):
         self.__pos: Point = gameData.homeRobot.pos
         self.__dir: float = gameData.homeRobot.dir
 
@@ -22,8 +22,8 @@ class Controller:
         self.robotDistHist: deque = deque([math.inf] * HIST_QUEUE_LENGTH)
 
         self.__target: Point = Point(0, 0)
-        self.state: State = State.GET_HEALTHY_HIVE
-        self.stateOld: State = State.GET_HEALTHY_HIVE
+        self.state: State = initialState
+        self.stateOld: State = initialState
 
         self.gameData: GameData = gameData
 
@@ -49,15 +49,17 @@ class Controller:
         self.__pos = gameData.homeRobot.pos
         self.__dir = gameData.homeRobot.dir
 
-        self.targetDistance = self.distance(target)
-        self.targetAngle = self.angle(target)
+        if target is not None:
+            self.targetDistance = self.distance(target)
+            self.targetAngle = self.angle(target)
 
-        self.robotDirHist.popleft()
-        self.robotDirHist.append(self.targetDistance)
-        self.robotDistHist.popleft()
-        self.robotDistHist.append(self.targetAngle)
+            self.robotDirHist.popleft()
+            self.robotDirHist.append(self.targetDistance)
+            self.robotDistHist.popleft()
+            self.robotDistHist.append(self.targetAngle)
 
-        self.stateChanged = self.setStateChanged()
+        # TODO remove this?
+        # self.stateChanged = self.hasStateChanged()
 
     def distance(self, point: Point) -> float:
         return self.__pos.distance(point)
@@ -77,24 +79,27 @@ class Controller:
 
         return a_rel
 
-    def getClosestHive(self, hiveType: HiveTypeEnum):
+    def getClosestHive(self, hiveType: HiveTypeEnum) -> Hive:
         if hiveType == HiveTypeEnum.HIVE_HEALTHY:
             return min(self.gameData.healthyHives, key=lambda hive: hive.pos.distance(self.__pos))
         elif hiveType == HiveTypeEnum.HIVE_DISEASED:
             return min(self.gameData.diseasedHives, key=lambda hive: hive.pos.distance(self.__pos))
 
-    def setTarget(self, target: Point):
+    def setTarget(self, target: Point) -> None:
         print("Target coords: " + str(target.x) + " " + str(target.y))
         self.__target = target
 
-    def atTarget(self):
+    def atTargetEPS(self) -> bool:
         return self.targetDistance < DIST_EPS
 
-    def atTargetHist(self):
+    def atTargetNEAR(self) -> bool:
+        return self.targetDistance < DIST_NEAR
+
+    def atTargetHist(self) -> bool:
         err = [d > DIST_EPS for d in self.robotDistHist]
         return sum(err) == 0
 
-    def isTurned(self):
+    def isTurned(self) -> bool:
         err = [abs(a) > DIR_EPS for a in self.robotDirHist]
         if sum(err) == 0:
             self.speedRight = 0
@@ -103,26 +108,17 @@ class Controller:
 
         return False
 
-    def setStateChanged(self):
+    def hasStateChanged(self) -> bool:
         return self.state != self.stateOld
 
-    def setStates(self, new: State, old: State):
+    def setStates(self, new: State, old: State) -> None:
         self.state = new
         self.stateOld = old
 
-    def updatePidStraight(self):
-
-        turn = self.pidController.PIDForwardTurn.update(self.targetAngle)
-        base = self.pidController.PIDForwardTurn.update(self.targetDistance)
-
-        base = min(max(base, -SPEED_BASE_MAX), SPEED_BASE_MAX)
-        self.speedRight = -base - turn
-        self.speedLeft = -base + turn
-
-    def setSpeedToZero(self):
+    def setSpeedToZero(self) -> None:
         self.chassis.runMotors(0, 0)
 
-    def runMotors(self):
+    def runMotors(self) -> None:
         self.speedRight = round(min(max(self.speedRight, -SPEED_MAX), SPEED_MAX))
         self.speedLeft = round(min(max(self.speedLeft, -SPEED_MAX), SPEED_MAX))
 
@@ -131,10 +127,35 @@ class Controller:
         self.speedRightOld = self.speedRight
         self.speedLeftOld = self.speedLeft
 
-    def breakMotors(self):
+    def breakMotors(self) -> None:
         self.chassis.breakMotors()
 
-    def robotDie(self):
+    def robotDie(self) -> None:
         self.chassis.robotDie()
+
+    def isRobotAlive(self) -> bool:
+        return (self.gameData.homeRobot.pos is not None) and (self.gameData.homeRobot.dir is not None)
+
+    def updatePIDTurn(self) -> None:
+        u = self.pidController.PIDTurn.update(self.targetAngle)
+        self.speedRight = -u
+        self.speedLeft = u
+
+    def resetPIDTurn(self) -> None:
+        self.pidController.PIDTurn.reset()
+
+    def updatePIDStraight(self) -> None:
+
+        turn = self.pidController.PIDForwardTurn.update(self.targetAngle)
+        base = self.pidController.PIDForwardTurn.update(self.targetDistance)
+
+        base = min(max(base, -SPEED_BASE_MAX), SPEED_BASE_MAX)
+        self.speedRight = -base - turn
+        self.speedLeft = -base + turn
+
+    def resetPIDStraight(self) -> None:
+        self.pidController.PIDForwardBase.reset()
+        self.pidController.PIDForwardTurn.reset()
+
 
 # controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)
