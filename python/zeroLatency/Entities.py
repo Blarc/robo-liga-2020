@@ -54,15 +54,15 @@ class HiveTypeEnum(Enum):
 
 
 class Hive:
-    def __init__(self, id: int, data: Dict):
-        self.id: int = id
-        self.pos: Point = Point(data["x"], data["y"])
-        self.dir: float = data["dir"]
-        self.type: HiveTypeEnum = self.parseType(data["type"])
+    def __init__(self, hiveId: int, data: Dict):
+        self.id = hiveId
+        self.pos = Point(data["x"], data["y"])
+        self.dir = data["dir"]
+        self.type = self.parseType(data["type"])
 
     @staticmethod
-    def parseType(type: str):
-        if type == "HIVE_HEALTHY":
+    def parseType(hiveType: str):
+        if hiveType == "HIVE_HEALTHY":
             return HiveTypeEnum.HIVE_HEALTHY
         return HiveTypeEnum.HIVE_DISEASED
 
@@ -83,19 +83,19 @@ class Team:
 
 class GameData:
     def __init__(self, data: Dict, teamTag: str, enemyTag: str):
-        self.healthyHives: List[Hive] = []
-        self.diseasedHives: List[Hive] = []
+        self.healthyHives = []
+        self.diseasedHives = []
         self.parseHives(data["objects"]["hives"])
-        self.homeBasket: Field = Field(data["fields"]["baskets"][teamTag])
-        self.enemyBasket: Field = Field(data["fields"]["baskets"][enemyTag])
-        self.homeZone: Field = Field(data["fields"]["zones"][teamTag])
-        self.neutralZone: Field = Field(data["fields"]["zones"]["neutral"])
-        self.enemyZone: Field = Field(data["fields"]["zones"][enemyTag])
-        self.field: Field = Field(data["fields"]["field"])
-        self.homeTeam: Team = Team(data["teams"][teamTag])
-        self.enemyTeam: Team = Team(data["teams"][enemyTag])
-        self.timeLeft: float = data["timeLeft"]
-        self.gameOn: bool = data["gameOn"]
+        self.homeBasket = Field(data["fields"]["baskets"][teamTag])
+        self.enemyBasket = Field(data["fields"]["baskets"][enemyTag])
+        self.homeZone = Field(data["fields"]["zones"][teamTag])
+        self.neutralZone = Field(data["fields"]["zones"]["neutral"])
+        self.enemyZone = Field(data["fields"]["zones"][enemyTag])
+        self.field = Field(data["fields"]["field"])
+        self.homeTeam = Team(data["teams"][teamTag])
+        self.enemyTeam = Team(data["teams"][enemyTag])
+        self.timeLeft = data["timeLeft"]
+        self.gameOn = data["gameOn"]
         self.homeRobot = Robot(int(self.homeTeam.id), data["objects"]["robots"][str(self.homeTeam.id)])
         self.enemyRobot = Robot(int(self.enemyTeam.id), data["objects"]["robots"][str(self.enemyTeam.id)])
 

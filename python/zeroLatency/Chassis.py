@@ -1,14 +1,14 @@
 import sys
 
 from ev3dev.ev3 import TouchSensor, LargeMotor, MediumMotor, Sound
-from .Constants import MOTOR_LEFT_PORT, MOTOR_RIGHT_PORT
+from Constants import MOTOR_LEFT_PORT, MOTOR_RIGHT_PORT
 
 
 class Chassis:
 
     def __init__(self):
-        self.motorLeft: LargeMotor = self.initLargeMotor(MOTOR_LEFT_PORT)
-        self.motorRight: LargeMotor = self.initLargeMotor(MOTOR_RIGHT_PORT)
+        self.motorLeft = self.initLargeMotor(MOTOR_LEFT_PORT)
+        self.motorRight = self.initLargeMotor(MOTOR_RIGHT_PORT)
 
     def initLargeMotor(self, port: str) -> LargeMotor:
         """

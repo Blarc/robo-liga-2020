@@ -1,39 +1,39 @@
 import math
 from collections import deque
 
-from .Chassis import Chassis
-from .Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX
-from .Entities import GameData, Point, State, HiveTypeEnum, Hive
-from .PidController import PidController
+from Chassis import Chassis
+from Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX
+from Entities import GameData, Point, State, HiveTypeEnum, Hive
+from PidController import PidController
 
 
 class Controller:
     def __init__(self, gameData: GameData, initialState: State = State.GET_HEALTHY_HIVE):
-        self.__pos: Point = gameData.homeRobot.pos
-        self.__dir: float = gameData.homeRobot.dir
+        self.__pos = gameData.homeRobot.pos
+        self.__dir = gameData.homeRobot.dir
 
-        self.speedRight: int = 0
-        self.speedLeft: int = 0
+        self.speedRight = 0
+        self.speedLeft = 0
 
-        self.speedRightOld: int = 0
-        self.speedLeftOld: int = 0
+        self.speedRightOld = 0
+        self.speedLeftOld = 0
 
-        self.robotDirHist: deque = deque([180.0] * HIST_QUEUE_LENGTH)
-        self.robotDistHist: deque = deque([math.inf] * HIST_QUEUE_LENGTH)
+        self.robotDirHist = deque([180.0] * HIST_QUEUE_LENGTH)
+        self.robotDistHist = deque([math.inf] * HIST_QUEUE_LENGTH)
 
-        self.__target: Point = Point(0, 0)
-        self.state: State = initialState
-        self.stateOld: State = initialState
+        self.__target = Point(0, 0)
+        self.state = initialState
+        self.stateOld = initialState
 
-        self.gameData: GameData = gameData
+        self.gameData = gameData
 
-        self.targetDistance: int = 0
-        self.targetAngle: float = 0
+        self.targetDistance = 0
+        self.targetAngle = 0
 
         self.stateChanged = False
 
-        self.pidController: PidController = PidController()
-        self.chassis: Chassis = Chassis()
+        self.pidController = PidController()
+        self.chassis = Chassis()
 
     def update(self, gameData: GameData, target: Point):
 

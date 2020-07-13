@@ -7,23 +7,22 @@ Program za vodenje robota EV3
 """
 import sys
 from time import time
-
 from ev3dev.ev3 import Button
 
-from .Connection import Connection
-from .Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
-from .Controller import Controller
+from Connection import Connection
+from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
+from Controller import Controller
+from Entities import Team, GameData, HiveTypeEnum, State
 
 # ------------------------------------------------------------------------------------------------------------------- #
-from .Entities import Team, GameData, HiveTypeEnum, State, Point
 
 print('Priprava tipal ... ', end='', flush=True)
-btn: Button = Button()
+btn = Button()
 print('OK!')
 
-url: str = SERVER_IP + GAME_ID
+url = SERVER_IP + GAME_ID
 print('Vspostavljanje povezave z naslovom ' + url + ' ... ', end='', flush=True)
-conn: Connection = Connection(url)
+conn = Connection(url)
 print('OK!')
 
 print('Zakasnitev v komunikaciji s streznikom ... ', end='', flush=True)
@@ -33,11 +32,11 @@ print('%.4f s' % (conn.testDelay(numOfIterations=10)))
 
 gameState = conn.request()
 
-homeTeamTag: str = 'undefined'
-enemyTeamTag: str = 'undefined'
+homeTeamTag = 'undefined'
+enemyTeamTag = 'undefined'
 
-team1: Team = Team(gameState["teams"]["team1"])
-team2: Team = Team(gameState["teams"]["team2"])
+team1 = Team(gameState["teams"]["team1"])
+team2 = Team(gameState["teams"]["team2"])
 
 if ROBOT_ID == team1.id:
     homeTeamTag = 'team1'
@@ -54,12 +53,12 @@ print('Robot tekmuje in ima interno oznako "' + homeTeamTag + '"')
 # ------------------------------------------------------------------------------------------------------------------- #
 # GLOBAL VARIABLES
 
-gameData: GameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-controller: Controller = Controller(gameData, initialState=State.GET_HEALTHY_HIVE)
+gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
+controller = Controller(gameData, initialState=State.GET_HEALTHY_HIVE)
 
-nearTargetOld: bool = False
+nearTargetOld = False
 
-target: Point = None
+target = None
 timeOld = time()
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -68,7 +67,7 @@ timeOld = time()
 print('Izvajam glavno zanko. Prekini jo s pritiskom na tipko DOL.')
 print('Cakam na zacetek tekme ...')
 
-doMainLoop: bool = True
+doMainLoop = True
 while doMainLoop and not btn.down:
 
     timeNow = time()
