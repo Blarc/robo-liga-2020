@@ -1,3 +1,7 @@
+import sys
+from time import time
+
+
 class Connection:
     """
     Objekt za vzpostavljanje povezave s strežnikom.
@@ -38,16 +42,17 @@ class Connection:
                 print(msg)
             return -1
 
-    def test_delay(self, num_iters: int = 10):
+    def testDelay(self, numOfIterations: int = 10):
         """
         Merjenje zakasnitve pri pridobivanju podatkov o tekmi s strežnika.
         Zgolj informativno.
         """
-        sum_time = 0
-        for i in range(num_iters):
-            start_time = time()
+        sumTime = 0
+        for _ in range(numOfIterations):
+            startTime = time()
             if self.request() == -1:
-                robot_die()
-            elapsed_time = time() - start_time
-            sum_time += elapsed_time
-        return sum_time / num_iters
+                print('Napaka pri vzpostavljanju povezave s strežnikom.')
+                sys.exit(0)
+            elapsedTime = time() - startTime
+            sumTime += elapsedTime
+        return sumTime / numOfIterations

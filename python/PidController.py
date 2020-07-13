@@ -7,7 +7,7 @@ from Constants import *
 
 class PidController:
     def __init__(self):
-        self.PID_turn: PID = PID(
+        self.PIDTurn: PID = PID(
             setpoint=0,
             kp=PID_TURN_KP,
             ki=PID_TURN_KI,
@@ -17,7 +17,7 @@ class PidController:
         # PID za voznjo naravnost - regulira nazivno hitrost za oba motorja,
         # ki je odvisna od oddaljenosti od cilja.
         # setpoint=0 pomeni, da mora biti razdalja med robotom in ciljem enaka 0.
-        self.PID_frwd_base: PID = PID(
+        self.PIDForwardBase: PID = PID(
             setpoint=0,
             kp=PID_STRAIGHT_KP,
             ki=PID_STRAIGHT_KI,
@@ -26,7 +26,7 @@ class PidController:
 
         # PID za obracanje med voznjo naravnost.
         # setpoint=0 pomeni, da naj bo kot med robotom in ciljem (target_angle) enak 0.
-        self.PID_frwd_turn: PID = PID(
+        self.PIDForwardTurn: PID = PID(
             setpoint=0,
             kp=PID_TURN_KP,
             ki=PID_TURN_KI,

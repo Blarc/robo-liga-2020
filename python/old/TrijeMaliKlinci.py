@@ -391,7 +391,7 @@ print('OK!')
 
 # Izmerimo zakasnitev pri pridobivanju podatkov (povprečje num_iters meritev)
 print('Zakasnitev v komunikaciji s streznikom ... ', end='', flush=True)
-print('%.4f s' % (conn.test_delay(num_iters=10)))
+print('%.4f s' % (conn.testDelay(numOfIterations=10)))
 
 # -----------------------------------------------------------------------------
 # PRIPRAVA NA TEKMO
@@ -502,7 +502,7 @@ robot_dir_data_id = 0
 # da je ta čas čim krajši.
 t_old = time()
 # Začetno stanje.
-state = State.GET_APPLE
+state = State.GET_HEALTHY_HIVE
 # Prejšnje stanje.
 state_old = -1
 # Id prejšnjega najbližjega jabolka
@@ -573,13 +573,13 @@ while do_main_loop and not btn.down:
             robot_dist_hist.popleft()
             robot_dist_hist.append(target_dist)
 
-            if state == State.GET_APPLE:
+            if state == State.GET_HEALTHY_HIVE:
                 # Nastavi target na najbližje jabolko
                 print("State GET_APPLE")
 
                 current_apple = get_closest_good_apple()
                 if current_apple is None:
-                    state = State.GET_BAD_APPLE
+                    state = State.GET_DISEASED_HIVE
                     continue
 
                 target = get_apple_pos(current_apple)
@@ -599,7 +599,7 @@ while do_main_loop and not btn.down:
                 else:
                     state = State.HOME
 
-            elif state == State.GET_BAD_APPLE:
+            elif state == State.GET_DISEASED_HIVE:
                 # Nastavi target na najbližje jabolko
                 print("State GET_BAD_APPLE")
 
@@ -643,7 +643,7 @@ while do_main_loop and not btn.down:
                     state = State.HOME_TURN
                     robot_near_target_old = False
                 else:
-                    state = State.GET_APPLE
+                    state = State.GET_HEALTHY_HIVE
 
             elif state == State.ENEMY_HOME:
                 # Nastavi target na home
@@ -664,7 +664,7 @@ while do_main_loop and not btn.down:
                     state = State.ENEMY_HOME_TURN
                     robot_near_target_old = False
                 else:
-                    state = State.GET_APPLE
+                    state = State.GET_HEALTHY_HIVE
 
             elif state == State.GET_TURN:
                 # Obračanje robota na mestu, da bo obrnjen proti cilju.
@@ -811,7 +811,7 @@ while do_main_loop and not btn.down:
 
                 print("robot: " + str(robot_pos.x) + " " + str(robot_pos.y))
                 if not apple_in_claws(get_apple_id(current_apple)):
-                    state = State.GET_APPLE
+                    state = State.GET_HEALTHY_HIVE
                     claws_open()
                     continue
                 # Ali smo že dosegli ciljni kot?
@@ -902,7 +902,7 @@ while do_main_loop and not btn.down:
 
                 print("robot: " + str(robot_pos.x) + " " + str(robot_pos.y))
                 if not apple_in_claws(get_apple_id(current_apple)):
-                    state = State.GET_APPLE
+                    state = State.GET_HEALTHY_HIVE
                     claws_open()
                     continue
                 # Ali smo že dosegli ciljni kot?
@@ -977,7 +977,7 @@ while do_main_loop and not btn.down:
             elif state == State.BACK_OFF:
                 print("State BACK_OFF")
                 decelerate_both_motors_to(0, -500)
-                state = State.GET_APPLE
+                state = State.GET_HEALTHY_HIVE
 
             # Omejimo vrednosti za hitrosti na motorjih.
             speed_right = round(

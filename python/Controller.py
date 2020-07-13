@@ -3,11 +3,8 @@ from collections import deque
 
 from Chassis import Chassis
 from Constants import *
-from GameData import GameData
-from HiveTypeEnum import HiveTypeEnum
+from Entities import GameData, Point, State, HiveTypeEnum
 from PidController import PidController
-from Point import Point
-from State import State
 
 
 class Controller:
@@ -25,8 +22,8 @@ class Controller:
         self.robotDistHist: deque = deque([math.inf] * HIST_QUEUE_LENGTH)
 
         self.__target: Point = Point(0, 0)
-        self.state: State = State.GET_APPLE
-        self.stateOld: State = State.GET_APPLE
+        self.state: State = State.GET_HEALTHY_HIVE
+        self.stateOld: State = State.GET_HEALTHY_HIVE
 
         self.gameData: GameData = gameData
 
@@ -115,8 +112,8 @@ class Controller:
 
     def updatePidStraight(self):
 
-        turn = self.pidController.PID_frwd_turn.update(self.targetAngle)
-        base = self.pidController.PID_frwd_turn.update(self.targetDistance)
+        turn = self.pidController.PIDForwardTurn.update(self.targetAngle)
+        base = self.pidController.PIDForwardTurn.update(self.targetDistance)
 
         base = min(max(base, -SPEED_BASE_MAX), SPEED_BASE_MAX)
         self.speedRight = -base - turn
@@ -136,5 +133,8 @@ class Controller:
 
     def breakMotors(self):
         self.chassis.breakMotors()
+
+    def robotDie(self):
+        self.chassis.robotDie()
 
 # controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)
