@@ -1,8 +1,9 @@
 from tkinter import Tk, Frame
 
 from algorithms.BSplineAlgorithm import BSplineAlgorithm
-from Board import Board
 from algorithms.DWAAlgorithm import DWAAlgorithm
+from algorithms.GreedyAlgorithm import GreedyAlgorithm
+from Board import Board
 from Game import Game
 
 
@@ -12,12 +13,14 @@ class RobotSimulator(Frame):
         super().__init__()
 
         self.master.title("Robot simulator 2.0")
-        game = Game(3)
+        game = Game(4)
 
         if algorithm == 0:
             self.board = Board(game, BSplineAlgorithm(game))
         elif algorithm == 1:
             self.board = Board(game, DWAAlgorithm(game))
+        elif algorithm == 2:
+            self.board = Board(game, GreedyAlgorithm(game))
 
         self.pack()
 

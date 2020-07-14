@@ -119,16 +119,17 @@ class Board(Canvas):
         return self.create_line(a[0], a[1], b[0], b[1], arrow="last", fill=color, tag=tag)
 
     def drawArrow2(self, length=0.1):
-        point = self.gamePointToBoardPoint((self.robotTrajectoryPoint[0], self.robotTrajectoryPoint[1]))
-        self.arrow2 = self.drawArrow(
-            point,
-            (
-                point[0] + length * point[0] * math.cos(self.robotTrajectoryPoint[2]),
-                point[1] + length * point[1] * math.sin(self.robotTrajectoryPoint[2])
-            ),
-            "black",
-            "arrow2"
-        )
+        if len(self.robotTrajectoryPoint) > 2:
+            point = self.gamePointToBoardPoint((self.robotTrajectoryPoint[0], self.robotTrajectoryPoint[1]))
+            self.arrow2 = self.drawArrow(
+                point,
+                (
+                    point[0] + length * point[0] * math.cos(self.robotTrajectoryPoint[2]),
+                    point[1] + length * point[1] * math.sin(self.robotTrajectoryPoint[2])
+                ),
+                "black",
+                "arrow2"
+            )
 
     def drawPath(self, points: np.array, color: str):
         for previous, current in zip(points, points[1:]):
