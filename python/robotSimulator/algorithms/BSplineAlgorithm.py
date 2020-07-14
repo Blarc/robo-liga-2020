@@ -2,7 +2,7 @@ import numpy as np
 import scipy.interpolate as scipy_interpolate
 
 from Game import Game
-from RobotAlgorithm import RobotAlgorithm
+from algorithms.RobotAlgorithm import RobotAlgorithm
 
 
 class BSplineAlgorithm(RobotAlgorithm):

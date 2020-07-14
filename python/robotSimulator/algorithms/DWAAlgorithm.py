@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 
 from Game import Game
-from RobotAlgorithm import RobotAlgorithm
+from algorithms.RobotAlgorithm import RobotAlgorithm
 
 
 class RobotType(Enum):
@@ -64,7 +64,7 @@ class RobotConfig:
     #     self._robot_type = value
 
 
-class DynamicWindowApproachAlgorithm(RobotAlgorithm):
+class DWAAlgorithm(RobotAlgorithm):
 
     def __init__(self, game: Game):
         super().__init__()

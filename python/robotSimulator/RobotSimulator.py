@@ -1,8 +1,8 @@
 from tkinter import Tk, Frame
 
-from BSplineAlgorithm import BSplineAlgorithm
+from algorithms.BSplineAlgorithm import BSplineAlgorithm
 from Board import Board
-from DynamicWindowApproachAlgorithm import DynamicWindowApproachAlgorithm
+from algorithms.DWAAlgorithm import DWAAlgorithm
 from Game import Game
 
 
@@ -12,19 +12,19 @@ class RobotSimulator(Frame):
         super().__init__()
 
         self.master.title("Robot simulator 2.0")
-        game = Game(4)
+        game = Game(3)
 
         if algorithm == 0:
             self.board = Board(game, BSplineAlgorithm(game))
         elif algorithm == 1:
-            self.board = Board(game, DynamicWindowApproachAlgorithm(game))
+            self.board = Board(game, DWAAlgorithm(game))
 
         self.pack()
 
 
 def main():
     root = Tk()
-    RobotSimulator(0)
+    RobotSimulator(1)
     root.mainloop()
 
 
