@@ -11,7 +11,7 @@ class NodeType(Enum):
     VISITED = 2
 
 
-class GreedyAlgorithm(RobotAlgorithm):
+class DGAAlgorithm(RobotAlgorithm):
 
     def __init__(self, game: Game):
         super().__init__()
@@ -38,9 +38,11 @@ class GreedyAlgorithm(RobotAlgorithm):
         end = self.toMapPoint((2800, 1000))
 
         path.append(startPos)
-        while currentPos[0] != end[0] or currentPos[1] != end[1]:
+        counter = 0
+        while (currentPos[0] != end[0] or currentPos[1] != end[1]) and counter < 5:
             currentPos = self.next(currentPos, end, nodeMap)
             path.append(self.toGamePoint(currentPos))
+            counter += 1
 
         return path
 

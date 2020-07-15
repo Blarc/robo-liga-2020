@@ -1,8 +1,6 @@
 import numpy as np
 from enum import Enum
-
-from Game import Game
-from algorithms.RobotAlgorithm import RobotAlgorithm
+import time
 
 
 class NodeType(Enum):
@@ -11,25 +9,24 @@ class NodeType(Enum):
     VISITED = 2
 
 
-class GreedyAlgorithm(RobotAlgorithm):
+class GreedyAlgorithm:
 
-    def __init__(self, game: Game):
+    GAME_WIDTH = 3500
+    GAME_HEIGHT = 2000
+    BLOCK_SIZE = 100
+    MAX_FUTURE = 5
+
+    def __init__(self):
         super().__init__()
-        self.game = game
-        self.nodeSize = game.BLOCK_SIZE
-        self.mapShape = (game.GAME_HEIGHT // self.nodeSize, game.GAME_WIDTH // self.nodeSize)
-        self.path = self.run(game.robots[0].position)
+        self.nodeSize = self.BLOCK_SIZE
+        self.mapShape = (self.GAME_HEIGHT // self.nodeSize, self.GAME_WIDTH // self.nodeSize)
+        self.hives = self.initHives()
+        self.path = self.run((500, 1000))
         self.index = 0
 
-    def getMotion(self, currentTrajectoryPoint: np.array) -> np.array:
-        if self.index < len(self.path):
-            tmp = self.path[self.index]
-            self.index += 1
-            return tmp
-
-        return -1, -1
-
     def run(self, startPos):
+        print("start")
+        startTime = time.time()
         path = []
         nodeMap = self.initNodeMap()
 
@@ -38,9 +35,14 @@ class GreedyAlgorithm(RobotAlgorithm):
         end = self.toMapPoint((2800, 1000))
 
         path.append(startPos)
-        while currentPos[0] != end[0] or currentPos[1] != end[1]:
+        counter = 0
+        while (currentPos[0] != end[0] or currentPos[1] != end[1]) and counter < self.MAX_FUTURE:
             currentPos = self.next(currentPos, end, nodeMap)
             path.append(self.toGamePoint(currentPos))
+            counter += 1
+
+        endTime = time.time()
+        print(endTime - startTime)
 
         return path
 
@@ -76,9 +78,9 @@ class GreedyAlgorithm(RobotAlgorithm):
     def initNodeMap(self):
         nodeMap = np.zeros(shape=self.mapShape)
 
-        for hive in self.game.hives:
+        for hive in self.hives:
 
-            hiveMapPoint = self.toMapPoint(hive.position)
+            hiveMapPoint = self.toMapPoint(hive)
 
             for i in range(hiveMapPoint[1] - 3, hiveMapPoint[1] + 3):
                 for j in range(hiveMapPoint[0] - 3, hiveMapPoint[0] + 3):
@@ -91,3 +93,19 @@ class GreedyAlgorithm(RobotAlgorithm):
 
     def toGamePoint(self, point):
         return int(point[0]) * self.nodeSize, int(point[1]) * self.nodeSize
+
+    def initHives(self):
+        hives = [(self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + 7 * self.BLOCK_SIZE / 2),
+                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + 5 * self.BLOCK_SIZE / 2),
+                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + 3 * self.BLOCK_SIZE / 2),
+                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + self.BLOCK_SIZE / 2),
+                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - self.BLOCK_SIZE / 2),
+                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - 3 * self.BLOCK_SIZE / 2),
+                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - 5 * self.BLOCK_SIZE / 2),
+                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - 7 * self.BLOCK_SIZE / 2)]
+
+        return hives
+
+
+if __name__ == '__main__':
+    greedy = GreedyAlgorithm()

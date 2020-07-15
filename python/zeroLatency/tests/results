@@ -1,0 +1,5 @@
+BSpline: 0.128
+Greedy: 2.207 (without PriorityQueue)
+DWA: 37.686
+Greedy (with big blocks): 0.646
+DGA (with big blocks): 0.216

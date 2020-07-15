@@ -3,6 +3,7 @@ from tkinter import Tk, Frame
 from algorithms.BSplineAlgorithm import BSplineAlgorithm
 from algorithms.DWAAlgorithm import DWAAlgorithm
 from algorithms.GreedyAlgorithm import GreedyAlgorithm
+from algorithms.DGAAlgorithm import DGAAlgorithm
 from Board import Board
 from Game import Game
 
@@ -13,7 +14,7 @@ class RobotSimulator(Frame):
         super().__init__()
 
         self.master.title("Robot simulator 2.0")
-        game = Game(4)
+        game = Game(1)
 
         if algorithm == 0:
             self.board = Board(game, BSplineAlgorithm(game))
@@ -21,13 +22,15 @@ class RobotSimulator(Frame):
             self.board = Board(game, DWAAlgorithm(game))
         elif algorithm == 2:
             self.board = Board(game, GreedyAlgorithm(game))
+        elif algorithm == 3:
+            self.board = Board(game, DGAAlgorithm(game))
 
         self.pack()
 
 
 def main():
     root = Tk()
-    RobotSimulator(1)
+    RobotSimulator(3)
     root.mainloop()
 
 
