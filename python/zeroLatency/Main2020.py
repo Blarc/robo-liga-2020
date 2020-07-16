@@ -8,14 +8,15 @@ Program za vodenje robota EV3
 
 import sys
 from time import time
+
 from ev3dev.ev3 import Button
 
 from Connection import Connection
 from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
 from Controller import Controller
-from Entities import Team, GameData, HiveTypeEnum, State, Point
-
+from Entities import Team, GameData, State, Point
 # ------------------------------------------------------------------------------------------------------------------- #
+from GreedyAlgorithm import GreedyAlgorithm
 
 print('Priprava tipal ... ', end='', flush=True)
 btn = Button()
@@ -58,25 +59,29 @@ topLeft2 = gameState['fields']['baskets']['team1']['topRight']
 topRight2 = gameState['fields']['baskets']['team2']['topLeft']
 bottomRight2 = gameState['fields']['baskets']['team2']['bottomLeft']
 
-targetsList = [
+goalList = [
     Point(bottomLeft2['x'], bottomLeft2['y']),
     Point(topLeft2['x'], topLeft2['y']),
-    Point(1000, 1500),
-    Point(1100, 1700),
-    Point(1200, 1900),
     Point(topRight2['x'], topRight2['y']),
     Point(bottomRight2['x'], bottomRight2['y'])
 ]
 
+#Point(1000, 1500),
+#Point(1100, 1700),
+#Point(1200, 1900),
+
 print('Seznam ciljnih tock:')
-for tmpTarget in targetsList:
-    print('\t' + str(tmpTarget))
+for tmpGoal in goalList:
+    print('\t' + str(tmpGoal))
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # GLOBAL VARIABLES
 
 gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
 controller = Controller(initialState=State.IDLE)
+algorithm = GreedyAlgorithm()
+
+target = None
 
 robotNearTargetOld = False
 
@@ -96,17 +101,12 @@ while doMainLoop and not btn.down:
     loopTime = timeNow - timeOld
     timeOld = timeNow
 
-    # Osveži stanje tekme.
     gameState = conn.request()
     if gameState == -1:
         print('Napaka v paketu, ponovni poskus ...')
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-        controller.update(gameData, targetsList[targetIndex])
-
-        # Če tekma poteka in je oznaka robota vidna na kameri,
-        # potem izračunamo novo hitrost na motorjih.
-        # Sicer motorje ustavimo.
+        controller.update(gameData, goalList[targetIndex], target)
 
         if gameData.gameOn and controller.isRobotAlive():
 
@@ -116,10 +116,10 @@ while doMainLoop and not btn.down:
             if controller.state == State.IDLE:
                 print(State.IDLE)
 
-                controller.setSpeedToZero()
+                # controller.setSpeedToZero()
 
-                if not controller.atTargetEPS():
-                    controller.state = State.TURN
+                if not controller.atGoalEPS():
+                    controller.state = State.ALGORITHM
                     robotNearTargetOld = False
                 else:
                     controller.state = State.LOAD_NEXT_TARGET
@@ -132,7 +132,7 @@ while doMainLoop and not btn.down:
 
                 targetIndex += 1
 
-                if targetIndex >= len(targetsList):
+                if targetIndex >= len(goalList):
                     targetIndex = 0
 
                 controller.state = State.IDLE
@@ -169,7 +169,7 @@ while doMainLoop and not btn.down:
 
                 robotNearTargetOld = controller.atTargetNEAR()
 
-                if controller.atTargetHIST():
+                if controller.atGoalHIST():
                     controller.setSpeedToZero()
                     controller.state = State.LOAD_NEXT_TARGET
 
@@ -179,6 +179,16 @@ while doMainLoop and not btn.down:
 
                 else:
                     controller.updatePIDStraight()
+                    controller.state = State.ALGORITHM
+
+            # ------------------------------------------------------------------------------------------------------- #
+            # ALGORITHM STATE
+
+            elif controller.state == State.ALGORITHM:
+                print(State.ALGORITHM)
+
+                controller.target = algorithm.run(gameData.homeRobot.pos, controller.goal, gameData.healthyHives)
+                controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #
             # SPIN MOTORS

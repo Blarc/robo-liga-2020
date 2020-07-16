@@ -8,9 +8,9 @@ from PidController import PidController
 
 
 class Controller:
-    def __init__(self, gameData: GameData, initialState: State = State.GET_HEALTHY_HIVE):
-        self.__pos = gameData.homeRobot.pos
-        self.__dir = gameData.homeRobot.dir
+    def __init__(self, initialState: State = State.GET_HEALTHY_HIVE):
+        self.__pos = None
+        self.__dir = None
 
         self.speedRight = 0
         self.speedLeft = 0
@@ -18,26 +18,28 @@ class Controller:
         self.speedRightOld = 0
         self.speedLeftOld = 0
 
-        self.robotDirHist = deque([180.0] * HIST_QUEUE_LENGTH)
-        self.robotDistHist = deque([math.inf] * HIST_QUEUE_LENGTH)
+        self.goal = Point(0, 0)
+        self.target = Point(0, 0)
 
-        self.__target = Point(0, 0)
+        self.robotDirTargetHist = deque([180.0] * HIST_QUEUE_LENGTH)
+        self.robotDistTargetHist = deque([math.inf] * HIST_QUEUE_LENGTH)
+        self.robotDistGoalHist = deque([math.inf] * HIST_QUEUE_LENGTH)
+
+        self.targetDistance = 9999
+        self.targetAngle = 9999
+        self.goalDistance = 9999
+
         self.state = initialState
         self.stateOld = initialState
 
-        self.gameData = gameData
-
-        self.targetDistance = 0
-        self.targetAngle = 0
+        self.gameData = None
 
         self.stateChanged = False
 
         self.pidController = PidController()
         self.chassis = Chassis()
 
-    def update(self, gameData: GameData, target: Point):
-
-        print(self.state)
+    def update(self, gameData: GameData, goal: Point, target):
         if self.state != self.stateOld:
             self.stateChanged = True
         else:
@@ -45,21 +47,27 @@ class Controller:
         self.stateOld = self.state
 
         self.gameData = gameData
+        self.goal = goal
+        self.target = target
 
-        self.__pos = gameData.homeRobot.pos
-        self.__dir = gameData.homeRobot.dir
+        if gameData.homeRobot is not None:
+            self.__pos = gameData.homeRobot.pos
+            self.__dir = gameData.homeRobot.dir
 
-        if target is not None:
-            self.targetDistance = self.distance(target)
-            self.targetAngle = self.angle(target)
+            if self.goal is not None:
+                self.goalDistance = self.distance(self.goal)
 
-            self.robotDirHist.popleft()
-            self.robotDirHist.append(self.targetDistance)
-            self.robotDistHist.popleft()
-            self.robotDistHist.append(self.targetAngle)
+                self.robotDistGoalHist.popleft()
+                self.robotDistGoalHist.append(self.goalDistance)
 
-        # TODO remove this?
-        # self.stateChanged = self.hasStateChanged()
+            if self.target is not None:
+                self.targetDistance = self.distance(self.target)
+                self.targetAngle = self.angle(self.target)
+
+                self.robotDirTargetHist.popleft()
+                self.robotDirTargetHist.append(self.targetAngle)
+                self.robotDistTargetHist.popleft()
+                self.robotDistTargetHist.append(self.targetDistance)
 
     def distance(self, point: Point) -> float:
         return self.__pos.distance(point)
@@ -85,22 +93,26 @@ class Controller:
         elif hiveType == HiveTypeEnum.HIVE_DISEASED:
             return min(self.gameData.diseasedHives, key=lambda hive: hive.pos.distance(self.__pos))
 
-    def setTarget(self, target: Point) -> None:
-        print("Target coords: " + str(target.x) + " " + str(target.y))
-        self.__target = target
-
     def atTargetEPS(self) -> bool:
         return self.targetDistance < DIST_EPS
 
     def atTargetNEAR(self) -> bool:
         return self.targetDistance < DIST_NEAR
 
+    def atGoalHIST(self) -> bool:
+        err = [d > DIST_EPS for d in self.robotDistGoalHist]
+        return sum(err) == 0
+
+    def atGoalEPS(self) -> bool:
+        return self.goalDistance < DIST_EPS
+
     def atTargetHIST(self) -> bool:
-        err = [d > DIST_EPS for d in self.robotDistHist]
+        err = [d > DIST_EPS for d in self.robotDistTargetHist]
         return sum(err) == 0
 
     def isTurned(self) -> bool:
-        err = [abs(a) > DIR_EPS for a in self.robotDirHist]
+        err = [abs(a) > DIR_EPS for a in self.robotDirTargetHist]
+
         if sum(err) == 0:
             self.speedRight = 0
             self.speedLeft = 0
@@ -134,7 +146,7 @@ class Controller:
         self.chassis.robotDie()
 
     def isRobotAlive(self) -> bool:
-        return (self.gameData.homeRobot.pos is not None) and (self.gameData.homeRobot.dir is not None)
+        return (self.__pos is not None) and (self.__dir is not None)
 
     def updatePIDTurn(self) -> None:
         u = self.pidController.PIDTurn.update(self.targetAngle)
@@ -156,6 +168,5 @@ class Controller:
     def resetPIDStraight(self) -> None:
         self.pidController.PIDForwardBase.reset()
         self.pidController.PIDForwardTurn.reset()
-
 
 # controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)

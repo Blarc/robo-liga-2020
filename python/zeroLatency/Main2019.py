@@ -54,7 +54,7 @@ print('Robot tekmuje in ima interno oznako "' + homeTeamTag + '"')
 # GLOBAL VARIABLES
 
 gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-controller = Controller(gameData, initialState=State.GET_HEALTHY_HIVE)
+controller = Controller(initialState=State.GET_HEALTHY_HIVE)
 
 robotNearTargetOld = False
 
@@ -131,7 +131,7 @@ while doMainLoop and not btn.down:
 
             elif controller.state == State.HOME:
 
-                target = gameData.homeBasket.topLeft
+                target = gameData.homeBasket.topRight2
                 target.x += 270
                 target.y -= 515
 
@@ -148,7 +148,7 @@ while doMainLoop and not btn.down:
 
             elif controller.state == State.ENEMY_HOME:
 
-                target = gameData.enemyBasket.topLeft
+                target = gameData.enemyBasket.topRight2
                 target.x += 270
                 target.y -= 515
 

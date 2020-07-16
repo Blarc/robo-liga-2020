@@ -50,6 +50,7 @@ class State(Enum):
     LOAD_NEXT_TARGET = 91
     TURN = 92
     DRIVE_STRAIGHT = 93
+    ALGORITHM = 94
 
 
 class HiveTypeEnum(Enum):
@@ -74,7 +75,7 @@ class Hive:
 class Robot:
     def __init__(self, robotId: int, data: Dict):
         self.id = robotId
-        self.pos = Point(data["x"], data["y"])
+        self.pos = Point(data["position"]["x"], data["position"]["y"])
         self.dir = data["dir"]
 
 
@@ -100,8 +101,16 @@ class GameData:
         self.enemyTeam = Team(data["teams"][enemyTag])
         self.timeLeft = data["timeLeft"]
         self.gameOn = data["gameOn"]
-        self.homeRobot = Robot(int(self.homeTeam.id), data["objects"]["robots"][str(self.homeTeam.id)])
-        self.enemyRobot = Robot(int(self.enemyTeam.id), data["objects"]["robots"][str(self.enemyTeam.id)])
+
+        try:
+            self.homeRobot = Robot(int(self.homeTeam.id), data["objects"]["robots"][str(self.homeTeam.id + 15)])
+        except KeyError:
+            self.homeRobot = None
+
+        try:
+            self.enemyRobot = Robot(int(self.enemyTeam.id), data["objects"]["robots"][str(self.enemyTeam.id)])
+        except KeyError:
+            self.enemyRobot = None
 
     def parseHives(self, data):
         for hiveId, hiveData in data.items():
