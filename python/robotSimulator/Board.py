@@ -15,7 +15,7 @@ class BoardCons:
     BLOCK_SIZE = 25
     W_WIDTH = B_WIDTH + 2 * B_PADDING
     W_HEIGHT = B_HEIGHT + 2 * B_PADDING
-    DELAY = 50
+    DELAY = 500
 
 
 class Board(Canvas):
@@ -140,6 +140,7 @@ class Board(Canvas):
 
     def onTimer(self):
 
+        # self.algorithm.run()
         self.robotTrajectoryPoint: np.array = self.algorithm.getMotion(self.robotTrajectoryPoint)
 
         if self.robotTrajectoryPoint[0] == -1:

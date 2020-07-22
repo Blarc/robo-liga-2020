@@ -4,3 +4,6 @@ class Point:
         super().__init__()
         self.x = x
         self.y = y
+
+    def equals(self, that: 'Point'):
+        return self.x == that.x and self.y == that.y

@@ -1,14 +1,19 @@
 import asyncio
-import time
 
 
-async def nested():
-    await asyncio.sleep(4)
-    print("PATH")
+async def second():
+    while True:
+        await asyncio.sleep(1)
+        print("Second")
 
 
-if __name__ == '__main__':
-    asyncio.gather(nested())
-    for i in range(10):
-        time.sleep(1)
-        print("hello")
+async def long():
+    await asyncio.sleep(3)
+    print("Long")
+
+
+async def main():
+    await asyncio.gather(second(), long())
+
+if __name__ == "__main__":
+    asyncio.run(main())

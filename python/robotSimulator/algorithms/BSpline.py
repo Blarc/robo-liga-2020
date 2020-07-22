@@ -5,7 +5,7 @@ from Game import Game
 from algorithms.RobotAlgorithm import RobotAlgorithm
 
 
-class BSplineAlgorithm(RobotAlgorithm):
+class BSpline(RobotAlgorithm):
 
     def __init__(self, game: Game):
         super().__init__()

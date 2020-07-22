@@ -31,6 +31,8 @@ class Game:
             self.setupThree()
         elif setup == 4:
             self.setupFour()
+        elif setup == 5:
+            self.setupFive()
 
     def setupZero(self):
         self.hives.append(Hive((Game.GAME_WIDTH / 2 - Game.BLOCK_SIZE / 2, Game.BLOCK_SIZE * 0 + Game.BLOCK_SIZE / 2),
@@ -196,3 +198,71 @@ class Game:
 
         self.hives.append(Hive((Game.GAME_WIDTH - Game.GAME_WIDTH / 3 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2),
                                HiveType.HEALTHY))
+
+    def setupFive(self):
+        self.robots.append(Robot((500, 1000), 90))
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + 7 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + 5 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + 3 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - 3 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - 5 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (Game.GAME_WIDTH / 4 + 100 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - 7 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        # ------------------------------------------------------------------------------------------------------------#
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + 7 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + 5 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + 3 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 + Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - 3 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - 5 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))
+
+        self.hives.append(Hive(
+            (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - 7 * Game.BLOCK_SIZE / 2),
+            HiveType.HEALTHY))

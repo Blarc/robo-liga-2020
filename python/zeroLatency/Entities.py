@@ -51,6 +51,7 @@ class State(Enum):
     TURN = 92
     DRIVE_STRAIGHT = 93
     ALGORITHM = 94
+    DUMMY = 123
 
 
 class HiveTypeEnum(Enum):
@@ -103,7 +104,7 @@ class GameData:
         self.gameOn = data["gameOn"]
 
         try:
-            self.homeRobot = Robot(int(self.homeTeam.id), data["objects"]["robots"][str(self.homeTeam.id + 15)])
+            self.homeRobot = Robot(int(self.homeTeam.id), data["objects"]["robots"][str(self.homeTeam.id)])
         except KeyError:
             self.homeRobot = None
 

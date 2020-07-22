@@ -8,12 +8,13 @@ Program za vodenje robota EV3
 
 import sys
 from time import time
+
 from ev3dev.ev3 import Button
 
 from Connection import Connection
 from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
 from Controller import Controller
-from Entities import Team, GameData, HiveTypeEnum, State, Point
+from Entities import Team, GameData, State, Point
 
 # ------------------------------------------------------------------------------------------------------------------- #
 
@@ -127,7 +128,7 @@ while doMainLoop and not btn.down:
             # ------------------------------------------------------------------------------------------------------- #
             # LOAD NEXT TARGET STATE
 
-            if controller.state == State.LOAD_NEXT_TARGET:
+            elif controller.state == State.LOAD_NEXT_TARGET:
                 print(State.LOAD_NEXT_TARGET)
 
                 targetIndex += 1
@@ -158,8 +159,9 @@ while doMainLoop and not btn.down:
             elif controller.state == State.DRIVE_STRAIGHT:
                 print(State.DRIVE_STRAIGHT)
 
-                controller.resetPIDStraight()
-                timerNearTarget = TIMER_NEAR_TARGET
+                if controller.stateChanged:
+                    controller.resetPIDStraight()
+                    timerNearTarget = TIMER_NEAR_TARGET
 
                 if not robotNearTargetOld and controller.atTargetNEAR():
                     timerNearTarget = TIMER_NEAR_TARGET

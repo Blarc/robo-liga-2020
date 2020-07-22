@@ -59,19 +59,17 @@ topLeft2 = gameState['fields']['baskets']['team1']['topRight']
 topRight2 = gameState['fields']['baskets']['team2']['topLeft']
 bottomRight2 = gameState['fields']['baskets']['team2']['bottomLeft']
 
-goalList = [
+targetList = [
     Point(bottomLeft2['x'], bottomLeft2['y']),
     Point(topLeft2['x'], topLeft2['y']),
+    Point(1750, 1000),
     Point(topRight2['x'], topRight2['y']),
-    Point(bottomRight2['x'], bottomRight2['y'])
+    Point(bottomRight2['x'], bottomRight2['y']),
+    Point(1750, 1000)
 ]
 
-#Point(1000, 1500),
-#Point(1100, 1700),
-#Point(1200, 1900),
-
 print('Seznam ciljnih tock:')
-for tmpGoal in goalList:
+for tmpGoal in targetList:
     print('\t' + str(tmpGoal))
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -106,7 +104,7 @@ while doMainLoop and not btn.down:
         print('Napaka v paketu, ponovni poskus ...')
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-        controller.update(gameData, goalList[targetIndex], target)
+        controller.update(gameData, targetList[targetIndex])
 
         if gameData.gameOn and controller.isRobotAlive():
 
@@ -118,8 +116,8 @@ while doMainLoop and not btn.down:
 
                 # controller.setSpeedToZero()
 
-                if not controller.atGoalEPS():
-                    controller.state = State.ALGORITHM
+                if not controller.atTargetEPS():
+                    controller.state = State.DRIVE_STRAIGHT
                     robotNearTargetOld = False
                 else:
                     controller.state = State.LOAD_NEXT_TARGET
@@ -127,12 +125,12 @@ while doMainLoop and not btn.down:
             # ------------------------------------------------------------------------------------------------------- #
             # LOAD NEXT TARGET STATE
 
-            if controller.state == State.LOAD_NEXT_TARGET:
+            elif controller.state == State.LOAD_NEXT_TARGET:
                 print(State.LOAD_NEXT_TARGET)
 
                 targetIndex += 1
 
-                if targetIndex >= len(goalList):
+                if targetIndex >= len(targetList):
                     targetIndex = 0
 
                 controller.state = State.IDLE
@@ -158,8 +156,9 @@ while doMainLoop and not btn.down:
             elif controller.state == State.DRIVE_STRAIGHT:
                 print(State.DRIVE_STRAIGHT)
 
-                controller.resetPIDStraight()
-                timerNearTarget = TIMER_NEAR_TARGET
+                if controller.stateChanged:
+                    controller.resetPIDStraight()
+                    timerNearTarget = TIMER_NEAR_TARGET
 
                 if not robotNearTargetOld and controller.atTargetNEAR():
                     timerNearTarget = TIMER_NEAR_TARGET
@@ -169,26 +168,28 @@ while doMainLoop and not btn.down:
 
                 robotNearTargetOld = controller.atTargetNEAR()
 
-                if controller.atGoalHIST():
-                    controller.setSpeedToZero()
+                if controller.atTargetHIST():
+                    # controller.setSpeedToZero()
                     controller.state = State.LOAD_NEXT_TARGET
 
                 elif timerNearTarget < 0:
+                    print("NAPAKA")
                     controller.setSpeedToZero()
                     controller.state = State.TURN
 
                 else:
+                    controller.stateOld = State.DUMMY
                     controller.updatePIDStraight()
-                    controller.state = State.ALGORITHM
+                    controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #
             # ALGORITHM STATE
 
-            elif controller.state == State.ALGORITHM:
-                print(State.ALGORITHM)
-
-                controller.target = algorithm.run(gameData.homeRobot.pos, controller.goal, gameData.healthyHives)
-                controller.state = State.DRIVE_STRAIGHT
+            # elif controller.state == State.ALGORITHM:
+            #     print(State.ALGORITHM)
+            #
+            #     controller.target = algorithm.run(gameData.homeRobot.pos, controller.goal, gameData.healthyHives)
+            #     controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #
             # SPIN MOTORS

@@ -64,7 +64,7 @@ class RobotConfig:
     #     self._robot_type = value
 
 
-class DWAAlgorithm(RobotAlgorithm):
+class DWA(RobotAlgorithm):
 
     def __init__(self, game: Game):
         super().__init__()

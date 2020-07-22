@@ -18,16 +18,13 @@ class Controller:
         self.speedRightOld = 0
         self.speedLeftOld = 0
 
-        self.goal = Point(0, 0)
         self.target = Point(0, 0)
 
         self.robotDirTargetHist = deque([180.0] * HIST_QUEUE_LENGTH)
         self.robotDistTargetHist = deque([math.inf] * HIST_QUEUE_LENGTH)
-        self.robotDistGoalHist = deque([math.inf] * HIST_QUEUE_LENGTH)
 
         self.targetDistance = 9999
         self.targetAngle = 9999
-        self.goalDistance = 9999
 
         self.state = initialState
         self.stateOld = initialState
@@ -39,7 +36,8 @@ class Controller:
         self.pidController = PidController()
         self.chassis = Chassis()
 
-    def update(self, gameData: GameData, goal: Point, target):
+    def update(self, gameData: GameData, target: Point):
+
         if self.state != self.stateOld:
             self.stateChanged = True
         else:
@@ -47,18 +45,11 @@ class Controller:
         self.stateOld = self.state
 
         self.gameData = gameData
-        self.goal = goal
         self.target = target
 
         if gameData.homeRobot is not None:
             self.__pos = gameData.homeRobot.pos
             self.__dir = gameData.homeRobot.dir
-
-            if self.goal is not None:
-                self.goalDistance = self.distance(self.goal)
-
-                self.robotDistGoalHist.popleft()
-                self.robotDistGoalHist.append(self.goalDistance)
 
             if self.target is not None:
                 self.targetDistance = self.distance(self.target)
@@ -98,13 +89,6 @@ class Controller:
 
     def atTargetNEAR(self) -> bool:
         return self.targetDistance < DIST_NEAR
-
-    def atGoalHIST(self) -> bool:
-        err = [d > DIST_EPS for d in self.robotDistGoalHist]
-        return sum(err) == 0
-
-    def atGoalEPS(self) -> bool:
-        return self.goalDistance < DIST_EPS
 
     def atTargetHIST(self) -> bool:
         err = [d > DIST_EPS for d in self.robotDistTargetHist]
