@@ -62,7 +62,7 @@ class HiveTypeEnum(Enum):
 class Hive:
     def __init__(self, hiveId: int, data: Dict):
         self.id = hiveId
-        self.pos = Point(data["x"], data["y"])
+        self.pos = Point(data["position"]["x"], data["position"]["y"])
         self.dir = data["dir"]
         self.type = self.parseType(data["type"])
 

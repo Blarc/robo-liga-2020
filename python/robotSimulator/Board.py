@@ -1,4 +1,5 @@
 import math
+import time
 from tkinter import Canvas
 
 import numpy as np
@@ -13,9 +14,10 @@ class BoardCons:
     B_HEIGHT = 500
     B_PADDING = 30
     BLOCK_SIZE = 25
+    ROBOT_SIZE = 50
     W_WIDTH = B_WIDTH + 2 * B_PADDING
     W_HEIGHT = B_HEIGHT + 2 * B_PADDING
-    DELAY = 500
+    DELAY = 100
 
 
 class Board(Canvas):
@@ -41,6 +43,7 @@ class Board(Canvas):
 
         # self.drawPath(self.algorithm.getControlPoints(), canvas, "blue")
         # self.drawPath(self.algorithm.getPath(), canvas, "red")
+        self.drawBSpline()
 
         self.after(BoardCons.DELAY, self.onTimer)
 
@@ -55,7 +58,7 @@ class Board(Canvas):
     def drawBoard(self):
 
         # draw grid
-        gridSize = (BoardCons.BLOCK_SIZE / 5)
+        gridSize = BoardCons.BLOCK_SIZE / 2
         for i in range(1, int(BoardCons.B_WIDTH / gridSize)):
             self.drawLine(
                 self.translateToBoardPoint((i * gridSize, 0)),
@@ -80,14 +83,19 @@ class Board(Canvas):
         self.drawRect(
             self.gamePointToBoardPoint(Game.storages[0].upperLeft),
             self.gamePointToBoardPoint(Game.storages[0].bottomRight),
-            fill="blue")
+            fill="red")
 
         self.drawRect(
             self.gamePointToBoardPoint(Game.storages[1].upperLeft),
             self.gamePointToBoardPoint(Game.storages[1].bottomRight),
-            fill="red")
+            fill="blue")
 
     def drawBlocks(self):
+
+        for hivePos in self.algorithm.getHivePositions():
+            point = self.gamePointToBoardPoint(hivePos)
+            self.drawBlock(point, "burlywood1", size=self.algorithm.nodeSize * (BoardCons.BLOCK_SIZE / Game.BLOCK_SIZE))
+
         for hive in self.game.hives:
             point = self.gamePointToBoardPoint(hive.position)
 
@@ -99,12 +107,12 @@ class Board(Canvas):
         point = self.gamePointToBoardPoint((self.robotTrajectoryPoint[0], self.robotTrajectoryPoint[1]))
         self.drawArrow2()
 
-        self.drawBlock(point, "cyan", "robot")
+        self.drawBlock(point, "cyan", "robot", size=BoardCons.ROBOT_SIZE)
 
-    def drawBlock(self, a: tuple, color: str, tag: str = ""):
+    def drawBlock(self, a: tuple, color: str, tag: str = "", size: int = BoardCons.BLOCK_SIZE):
         self.drawRect(
-            (a[0] - BoardCons.BLOCK_SIZE / 2, a[1] - BoardCons.BLOCK_SIZE / 2),
-            (a[0] + BoardCons.BLOCK_SIZE / 2, a[1] + BoardCons.BLOCK_SIZE / 2),
+            (a[0] - size / 2, a[1] - size / 2),
+            (a[0] + size / 2, a[1] + size / 2),
             fill=color,
             tag=tag
         )
@@ -153,9 +161,15 @@ class Board(Canvas):
         self.drawRect((boardPoint[0] - 2, boardPoint[1] - 2), (boardPoint[0] + 2, boardPoint[1] + 2), fill="red")
 
         tag = self.find_withtag("robot")
-        self.moveto(tag, boardPoint[0] - BoardCons.BLOCK_SIZE / 2, boardPoint[1] - BoardCons.BLOCK_SIZE / 2)
+        self.moveto(tag, boardPoint[0] - BoardCons.ROBOT_SIZE / 2, boardPoint[1] - BoardCons.ROBOT_SIZE / 2)
 
         self.delete(self.arrow2)
         self.drawArrow2()
 
         self.after(BoardCons.DELAY, self.onTimer)
+
+    def drawBSpline(self):
+        for point in self.algorithm.getBSpline():
+            point = self.gamePointToBoardPoint(point)
+            self.drawRect((point[0] - 4, point[1] - 4), (point[0] + 4, point[1] + 4), fill="green2")
+

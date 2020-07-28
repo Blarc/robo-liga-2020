@@ -4,9 +4,11 @@ from enum import Enum
 
 import numpy as np
 
-from Game import Game
-from algorithms.RobotAlgorithm import RobotAlgorithm
-from algorithms.Utils import euclidean
+from Entities import GameData
+
+
+def euclidean(a: tuple, b: tuple):
+    return np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
 
 class NodeType(Enum):
@@ -50,14 +52,17 @@ class Node:
         return self.x == other.x and self.y == other.y
 
 
-class AStar(RobotAlgorithm):
+class AStarAlgorithm:
+    NODE_SIZE = 250
+    GAME_HEIGHT = 2000
+    GAME_WIDTH = 3500
     HIVE_RADIUS = 1
 
-    def __init__(self, game: Game):
+    def __init__(self, gameData: GameData):
         super().__init__()
-        self.game = game
-        self.nodeSize = 250
-        self.mapShape = (game.GAME_WIDTH // self.nodeSize, game.GAME_HEIGHT // self.nodeSize)
+        self.gameData = gameData
+        self.nodeSize = self.NODE_SIZE
+        self.mapShape = (self.GAME_WIDTH // self.nodeSize, self.GAME_HEIGHT // self.nodeSize)
 
         # A STAR
         self.openNodes = []
@@ -67,12 +72,9 @@ class AStar(RobotAlgorithm):
 
         # PATH
         self.index = 0
-        startTime = time.time()
-        self.path = self.run(game.robots[0].position, (2800, 1000))
-        endTime = time.time()
-        print(endTime - startTime)
+        self.path = self.run((self.gameData.homeRobot.pos.x, self.gameData.homeRobot.pos.y), (500, 1000))
 
-    def getMotion(self, currentTrajectoryPoint: np.array) -> np.array:
+    def next(self) -> np.array:
 
         if len(self.path) != 0:
             return self.path.pop()
@@ -121,8 +123,8 @@ class AStar(RobotAlgorithm):
 
         self.nodeMap = [[Node(j, i) for i in range(self.mapShape[1])] for j in range(self.mapShape[0])]
 
-        for hive in self.game.hives:
-            hiveMapPoint = self.toMapPoint(hive.position)
+        for hive in self.gameData.diseasedHives + self.gameData.healthyHives:
+            hiveMapPoint = self.toMapPoint((hive.pos.x, hive.pos.y))
 
             startX, startY, endX, endY = self.findBorders(hiveMapPoint, self.HIVE_RADIUS)
 

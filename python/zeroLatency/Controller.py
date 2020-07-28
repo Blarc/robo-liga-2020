@@ -142,8 +142,8 @@ class Controller:
 
     def updatePIDStraight(self) -> None:
 
+        base = self.pidController.PIDForwardBase.update(self.targetDistance)
         turn = self.pidController.PIDForwardTurn.update(self.targetAngle)
-        base = self.pidController.PIDForwardTurn.update(self.targetDistance)
 
         base = min(max(base, -SPEED_BASE_MAX), SPEED_BASE_MAX)
         self.speedRight = -base - turn

@@ -1,5 +1,6 @@
 from typing import List
 
+from Connection import Connection
 from Field import Field
 from Hive import Hive, HiveType
 from Robot import Robot
@@ -33,6 +34,35 @@ class Game:
             self.setupFour()
         elif setup == 5:
             self.setupFive()
+        elif setup == 6:
+            self.setupSix()
+        elif setup == 23:
+            self.setupLive()
+
+    def setupLive(self):
+        SERVER_IP = "192.168.2.3:8088/game/"
+        GAME_ID = "93fb"
+
+        url = SERVER_IP + GAME_ID
+        print('Vspostavljanje povezave z naslovom ' + url + ' ... ', end='', flush=True)
+        conn = Connection(url)
+        print('OK!')
+
+        gameState = conn.request()
+        if gameState == -1:
+            print('Napaka v paketu')
+        else:
+            self.robots.append(Robot((500, 1000), 90))
+
+            for hiveId, hiveData in gameState['objects']['hives'].items():
+                x = hiveData["position"]["x"]
+                y = hiveData["position"]["y"]
+
+                x = abs(Game.GAME_WIDTH - x)
+
+                hivePos = (x, y)
+                hiveType = HiveType.HEALTHY if hiveData["type"] == "HIVE_HEALTHY" else HiveType.DISEASED
+                self.hives.append(Hive(hivePos, hiveType))
 
     def setupZero(self):
         self.hives.append(Hive((Game.GAME_WIDTH / 2 - Game.BLOCK_SIZE / 2, Game.BLOCK_SIZE * 0 + Game.BLOCK_SIZE / 2),
@@ -266,3 +296,15 @@ class Game:
         self.hives.append(Hive(
             (3 * Game.GAME_WIDTH / 4 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2 - 7 * Game.BLOCK_SIZE / 2),
             HiveType.HEALTHY))
+
+    def setupSix(self):
+        self.robots.append(Robot((500, 1000), 90))
+        self.hives.append(
+            Hive((Game.GAME_WIDTH / 2 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 4 - Game.BLOCK_SIZE / 2),
+                 HiveType.HEALTHY))
+        self.hives.append(
+            Hive((Game.GAME_WIDTH / 2 - Game.BLOCK_SIZE / 2, Game.GAME_HEIGHT / 2),
+                 HiveType.HEALTHY))
+        self.hives.append(
+            Hive((Game.GAME_WIDTH / 2 - Game.BLOCK_SIZE / 2, (3 * Game.GAME_HEIGHT) / 4 + Game.BLOCK_SIZE / 2),
+                 HiveType.HEALTHY))

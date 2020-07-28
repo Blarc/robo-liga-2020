@@ -8,6 +8,7 @@ from algorithms.Greedy import Greedy
 from algorithms.DGA import DGA
 from Board import Board
 from Game import Game
+from algorithms.Potential import Potential
 
 
 class RobotSimulator(Frame):
@@ -16,7 +17,7 @@ class RobotSimulator(Frame):
         super().__init__()
 
         self.master.title("Robot simulator 2.0")
-        game = Game(5)
+        game = Game(23)
 
         if algorithm == 0:
             self.board = Board(game, BSpline(game))
@@ -30,13 +31,15 @@ class RobotSimulator(Frame):
             self.board = Board(game, AStar(game))
         elif algorithm == 5:
             self.board = Board(game, DAS(game))
+        elif algorithm == 6:
+            self.board = Board(game, Potential(game))
 
         self.pack()
 
 
 def main():
     root = Tk()
-    RobotSimulator(4)
+    RobotSimulator(2)
     root.mainloop()
 
 

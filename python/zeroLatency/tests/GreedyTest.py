@@ -17,7 +17,6 @@ class GreedyAlgorithm:
 
     def __init__(self):
         super().__init__()
-        # self.nodeSize = self.BLOCK_SIZE // 5
         self.nodeSize = self.BLOCK_SIZE
         self.mapShape = (self.GAME_HEIGHT // self.nodeSize, self.GAME_WIDTH // self.nodeSize)
         self.hives = self.initHives()

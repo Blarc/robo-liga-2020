@@ -1,11 +1,7 @@
-from multiprocessing import Value, Array
-from typing import List
-
 import numpy as np
 from enum import Enum
-import time
 
-from Entities import Hive, Point
+from Entities import GameData
 
 
 class NodeType(Enum):
@@ -15,102 +11,107 @@ class NodeType(Enum):
 
 
 class GreedyAlgorithm:
-
-    GAME_WIDTH = 3500
     GAME_HEIGHT = 2000
-    BLOCK_SIZE = 100
+    GAME_WIDTH = 3500
 
-    def __init__(self):
+    NODE_SIZE = 100
+    HIVE_RADIUS = 2
+
+    LOOK_AHEAD = 3
+
+    def __init__(self, gameData: GameData):
         super().__init__()
-        self.nodeSize = self.BLOCK_SIZE
-        self.mapShape = (self.GAME_HEIGHT // self.nodeSize, self.GAME_WIDTH // self.nodeSize)
-        self.index = 0
+        self.mapShape = (self.GAME_HEIGHT // self.NODE_SIZE, self.GAME_WIDTH // self.NODE_SIZE)
+        self.nodeMap = self.initNodeMap(gameData)
 
-    def run(self, startPos: Point, endPos: Point, hives: List[Hive]):
-        print("start")
-        path = []
-        nodeMap = self.initNodeMap(hives)
+    def run(self, position: tuple, endPosition: tuple, gameData: GameData):
 
-        currentPos = self.toMapPoint(startPos)
-        nodeMap[currentPos.y][currentPos.x] = NodeType.VISITED.value
-        end = self.toMapPoint(endPos)
+        pos = self.toMapPoint(position)
+        end = self.toMapPoint(endPosition)
 
-        # TODO do I want start pos in path? path.append(startPos)
-        # counter = 0
-        # while (currentPos.x != end.x or currentPos.y != end.y) and counter < 5:
-        #     currentPos = self.next(currentPos, end, nodeMap)
-        #     path.append(self.toGamePoint(currentPos))
-        #     counter += 1
+        if pos[0] == end[0] and pos[1] == end[1]:
+            return -1, -1
 
-        # return path
+        points = []
+        temp = pos
+        for _ in range(0, 3):
+            self.nodeMap[temp[1]][temp[0]] = NodeType.VISITED.value
+            temp = self.next(temp, end)
+            points.append(temp)
 
-        return self.toGamePoint(self.next(currentPos, end, nodeMap))
+        for point in points[1:]:
+            self.nodeMap[point[1]][point[0]] = NodeType.EMPTY.value
 
-    def next(self, pos: Point, endPos: Point, nodeMap) -> Point:
+        dx = np.diff([point[0] for point in points])
+        dy = np.diff([point[1] for point in points])
 
-        startX = pos.x - 1 if pos.x - 1 >= 0 else pos.x
-        endX = pos.x + 1 if pos.x + 1 < self.mapShape[1] else pos.x
+        dx = np.array([abs(i) + 1 for i in dx])
+        dy = np.array([abs(i) for i in dy])
 
-        startY = pos.y - 1 if pos.y - 1 >= 0 else pos.y
-        endY = pos.y + 1 if pos.y + 1 < self.mapShape[0] else pos.y
+        derivative = sum(dy / dx)
+
+        print(derivative)
+
+        return self.toGamePoint(points[0])
+
+    def next(self, pos, endPos) -> tuple:
+
+        startX, startY, endX, endY = self.findBorders(pos, 1)
 
         minManhattan = float('inf')
         best = -1, -1
 
-        for i in range(startY, endY + 1):
-            for j in range(startX, endX + 1):
-                manhattan = self.euclidean(Point(j, i), endPos)
-                if nodeMap[i][j] == NodeType.EMPTY.value and manhattan < minManhattan:
+        for j in range(startY, endY + 1):
+            for i in range(startX, endX + 1):
+                manhattan = self.euclidean((j, i), endPos)
+                if self.nodeMap[j][i] == NodeType.EMPTY.value and manhattan < minManhattan:
                     minManhattan = manhattan
-                    best = j, i
+                    best = i, j
 
-        nodeMap[best[1]][best[0]] = NodeType.VISITED.value
-        return Point(best[0], best[1])
+        return best
 
     @staticmethod
     def manhattan(a: tuple, b: tuple):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
     @staticmethod
-    def euclidean(a: Point, b: Point):
-        return np.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+    def euclidean(a: tuple, b: tuple):
+        return np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
-    def initNodeMap(self, hives: List[Hive]):
+    def initNodeMap(self, gameData: GameData):
         nodeMap = np.zeros(shape=self.mapShape)
 
-        for hive in hives:
+        for hive in gameData.healthyHives + gameData.diseasedHives:
 
-            hiveMapPoint = self.toMapPoint(hive.pos)
+            hiveMapPoint = self.toMapPoint((hive.pos.x, hive.pos.y))
+            startX, startY, endX, endY = self.findBorders(hiveMapPoint, self.HIVE_RADIUS)
 
-            for i in range(hiveMapPoint.y - 3, hiveMapPoint.y + 3):
-                for j in range(hiveMapPoint.x - 3, hiveMapPoint.x + 3):
+            for i in range(startY, endY + 1):
+                for j in range(startX, endX + 1):
                     nodeMap[i][j] = NodeType.HIVE.value
 
         return nodeMap
 
-    def toMapPoint(self, point: Point) -> Point:
-        return Point(int(point.x) // self.nodeSize, int(point.y) // self.nodeSize)
+    def findBorders(self, point: tuple, radius: int):
+        startX = point[0]
+        startY = point[1]
+        endX = point[0]
+        endY = point[1]
 
-    def toGamePoint(self, point: Point) -> Point:
-        return Point(int(point.x) * self.nodeSize, int(point.y) * self.nodeSize)
+        for _ in range(radius):
+            if startX - 1 >= 0:
+                startX -= 1
+            if startY - 1 >= 0:
+                startY -= 1
+            if endX + 1 < self.mapShape[1]:
+                endX += 1
+            if endY + 1 < self.mapShape[0]:
+                endY += 1
 
-    def initHives(self):
-        hives = [(self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + 7 * self.BLOCK_SIZE / 2),
-                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + 5 * self.BLOCK_SIZE / 2),
-                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + 3 * self.BLOCK_SIZE / 2),
-                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 + self.BLOCK_SIZE / 2),
-                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - self.BLOCK_SIZE / 2),
-                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - 3 * self.BLOCK_SIZE / 2),
-                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - 5 * self.BLOCK_SIZE / 2),
-                 (self.GAME_WIDTH / 2 - self.BLOCK_SIZE / 2, self.GAME_HEIGHT / 2 - 7 * self.BLOCK_SIZE / 2)]
+        return startX, startY, endX, endY
 
-        return hives
+    def toMapPoint(self, point):
+        return round(point[0] / self.NODE_SIZE), round(point[1] / self.NODE_SIZE)
 
-    def runProcess(self, startPos: Point, endPos: Point, hives: List[Hive], isLocked: Value, array: Array):
-        isLocked.value = True
-        array.value = self.run(startPos, endPos, hives)
-        isLocked.value = False
-
-
-if __name__ == '__main__':
-    greedy = GreedyAlgorithm()
+    def toGamePoint(self, point):
+        return int(point[0]) * self.NODE_SIZE, int(point[1]) * self.NODE_SIZE

@@ -13,3 +13,9 @@ class RobotAlgorithm:
 
     def getMotion(self, currentTrajectoryPoint: np.array) -> np.array:
         pass
+
+    def getHivePositions(self):
+        return []
+
+    def getBSpline(self):
+        return []

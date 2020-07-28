@@ -11,12 +11,16 @@ from time import time
 
 from ev3dev.ev3 import Button
 
+from AStarAlgorithm import AStarAlgorithm
 from Connection import Connection
 from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
 from Controller import Controller
 from Entities import Team, GameData, State, Point
-# ------------------------------------------------------------------------------------------------------------------- #
+
 from GreedyAlgorithm import GreedyAlgorithm
+
+# ------------------------------------------------------------------------------------------------------------------- #
+from PotentialsAlgorithm import Potential
 
 print('Priprava tipal ... ', end='', flush=True)
 btn = Button()
@@ -61,11 +65,31 @@ bottomRight2 = gameState['fields']['baskets']['team2']['bottomLeft']
 
 targetList = [
     Point(bottomLeft2['x'], bottomLeft2['y']),
+    Point(bottomLeft2['x'], bottomLeft2['y'] + 100),
+    Point(bottomLeft2['x'], bottomLeft2['y'] + 200),
+    Point(bottomLeft2['x'], bottomLeft2['y'] + 300),
+    Point(bottomLeft2['x'], bottomLeft2['y'] + 400),
     Point(topLeft2['x'], topLeft2['y']),
+    Point(1300, 1500),
+    Point(1400, 1500),
+    Point(1600, 900),
     Point(1750, 1000),
+    Point(1800, 1100),
+    Point(2100, 1500),
+    Point(2200, 1500),
     Point(topRight2['x'], topRight2['y']),
+    Point(topRight2['x'], topRight2['y'] - 100),
+    Point(topRight2['x'], topRight2['y'] - 200),
+    Point(topRight2['x'], topRight2['y'] - 300),
+    Point(topRight2['x'], topRight2['y'] - 400),
     Point(bottomRight2['x'], bottomRight2['y']),
-    Point(1750, 1000)
+    Point(2200, 500),
+    Point(2100, 500),
+    Point(1900, 900),
+    Point(1750, 1000),
+    Point(1600, 900),
+    Point(1400, 500),
+    Point(1300, 500)
 ]
 
 print('Seznam ciljnih tock:')
@@ -77,9 +101,14 @@ for tmpGoal in targetList:
 
 gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
 controller = Controller(initialState=State.IDLE)
-algorithm = GreedyAlgorithm()
+endPosition = (1000, 500)
 
-target = None
+algorithm = GreedyAlgorithm(gameData)
+
+
+targetTuple = algorithm.run((gameData.homeRobot.pos.x, gameData.homeRobot.pos.y), endPosition, gameData)
+
+target = Point(targetTuple[0], targetTuple[1])
 
 robotNearTargetOld = False
 
@@ -104,7 +133,8 @@ while doMainLoop and not btn.down:
         print('Napaka v paketu, ponovni poskus ...')
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-        controller.update(gameData, targetList[targetIndex])
+        controller.update(gameData, target)
+        # print(target)
 
         if gameData.gameOn and controller.isRobotAlive():
 
@@ -112,7 +142,7 @@ while doMainLoop and not btn.down:
             # IDLE STATE
 
             if controller.state == State.IDLE:
-                print(State.IDLE)
+                # print(State.IDLE)
 
                 # controller.setSpeedToZero()
 
@@ -126,35 +156,26 @@ while doMainLoop and not btn.down:
             # LOAD NEXT TARGET STATE
 
             elif controller.state == State.LOAD_NEXT_TARGET:
-                print(State.LOAD_NEXT_TARGET)
+                # print(State.LOAD_NEXT_TARGET)
 
-                targetIndex += 1
+                targetTuple = algorithm.run((target.x, target.y), endPosition, gameData)
 
-                if targetIndex >= len(targetList):
-                    targetIndex = 0
+                if targetTuple[0] == -1:
+                    controller.robotDie()
 
-                controller.state = State.IDLE
+                target = Point(targetTuple[0], targetTuple[1])
 
-            # ------------------------------------------------------------------------------------------------------- #
-            # TURN STATE
-
-            elif controller.state == State.TURN:
-                print(State.TURN)
-
-                if controller.stateChanged:
-                    controller.resetPIDTurn()
-
-                if controller.isTurned():
-                    controller.setSpeedToZero()
-                    controller.state = State.DRIVE_STRAIGHT
-                else:
-                    controller.updatePIDTurn()
+                # targetIndex += 1
+                # if targetIndex >= len(targetList):
+                #     targetIndex = 0
+                #
+                controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #
             # DRIVE STRAIGHT STATE
 
             elif controller.state == State.DRIVE_STRAIGHT:
-                print(State.DRIVE_STRAIGHT)
+                # print(State.DRIVE_STRAIGHT)
 
                 if controller.stateChanged:
                     controller.resetPIDStraight()
@@ -178,18 +199,8 @@ while doMainLoop and not btn.down:
                     controller.state = State.TURN
 
                 else:
-                    controller.stateOld = State.DUMMY
                     controller.updatePIDStraight()
                     controller.state = State.DRIVE_STRAIGHT
-
-            # ------------------------------------------------------------------------------------------------------- #
-            # ALGORITHM STATE
-
-            # elif controller.state == State.ALGORITHM:
-            #     print(State.ALGORITHM)
-            #
-            #     controller.target = algorithm.run(gameData.homeRobot.pos, controller.goal, gameData.healthyHives)
-            #     controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #
             # SPIN MOTORS
@@ -204,5 +215,3 @@ while doMainLoop and not btn.down:
 # ------------------------------------------------------------------------------------------------------- #
 # END
 controller.robotDie()
-
-
