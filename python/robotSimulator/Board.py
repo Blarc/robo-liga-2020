@@ -17,7 +17,7 @@ class BoardCons:
     ROBOT_SIZE = 50
     W_WIDTH = B_WIDTH + 2 * B_PADDING
     W_HEIGHT = B_HEIGHT + 2 * B_PADDING
-    DELAY = 100
+    DELAY = 200
 
 
 class Board(Canvas):
@@ -39,7 +39,7 @@ class Board(Canvas):
         self.drawBoard()
         self.drawBlocks()
 
-        self.drawBlock(self.gamePointToBoardPoint((2800, 1000)), "gold")
+        self.drawBlock(self.gamePointToBoardPoint((3000, 1000)), "gold")
 
         # self.drawPath(self.algorithm.getControlPoints(), canvas, "blue")
         # self.drawPath(self.algorithm.getPath(), canvas, "red")

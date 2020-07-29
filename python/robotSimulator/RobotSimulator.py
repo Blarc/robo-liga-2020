@@ -39,7 +39,7 @@ class RobotSimulator(Frame):
 
 def main():
     root = Tk()
-    RobotSimulator(2)
+    RobotSimulator(6)
     root.mainloop()
 
 

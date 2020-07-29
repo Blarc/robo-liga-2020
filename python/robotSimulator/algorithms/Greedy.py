@@ -1,3 +1,5 @@
+from typing import Tuple, List
+
 import numpy as np
 import scipy.interpolate as scipy_interpolate
 from enum import Enum
@@ -18,33 +20,59 @@ class Greedy(RobotAlgorithm):
     HIVE_RADIUS = 2
     SPLINE_DEGREE = 2
     SPLINE_NUM_POINTS = 5
+    LOOK_AHEAD = 3
 
     def __init__(self, game: Game):
         super().__init__()
         self.game = game
-        self.nodeSize = 100
+        self.nodeSize = 125
         self.mapShape = (game.GAME_HEIGHT // self.nodeSize, game.GAME_WIDTH // self.nodeSize)
         self.nodeMap = self.initNodeMap()
-        self.end = self.toMapPoint((2800, 1000))
+        self.end = self.toMapPoint((3000, 1000))
         self.path = []
 
     def getMotion(self, currentTrajectoryPoint: np.array) -> np.array:
 
         pos = self.toMapPoint(currentTrajectoryPoint)
-        self.nodeMap[pos[1]][pos[0]] = NodeType.VISITED.value
 
-        result = self.next(pos)
-
-        if result[0] == self.end[0] and result[1] == self.end[1]:
+        if pos[0] == self.end[0] and pos[1] == self.end[1]:
             return -1, -1
 
-        return self.toGamePoint(self.next(pos))
+        points = []
+        temp = pos
 
-    def getBSplineOld(self):
-        t = range(len(self.path))
+        for _ in range(0, self.LOOK_AHEAD):
+            self.nodeMap[temp[1]][temp[0]] = NodeType.VISITED.value
+            temp = self.next(temp)
+            points.append(temp)
 
-        x = [point[0] for point in self.path]
-        y = [point[1] for point in self.path]
+        for point in points[1:]:
+            self.nodeMap[point[1]][point[0]] = NodeType.EMPTY.value
+
+        rx, ry = self.calcBSpline(points)
+
+        drx = np.array([abs(i) + 1 for i in np.diff(rx)])
+        dry = np.array([abs(i) for i in np.diff(ry)])
+
+
+        # dx = np.diff([point[0] for point in points])
+        # dy = np.diff([point[1] for point in points])
+        #
+        # dx = np.array([abs(i) + 1 for i in dx])
+        # dy = np.array([abs(i) for i in dy])
+
+        derivative = abs(np.diff(dry / drx)[0])
+
+        # print(derivative)
+
+        print(abs(self.toGamePoint(points[0])[0] - 3500), self.toGamePoint(points[0])[1])
+        return self.toGamePoint(points[0])
+
+    def calcBSpline(self, points: List[Tuple]):
+        t = range(len(points))
+
+        x = [point[0] for point in points]
+        y = [point[1] for point in points]
 
         x_tup = scipy_interpolate.splrep(t, x, k=self.SPLINE_DEGREE)
         y_tup = scipy_interpolate.splrep(t, y, k=self.SPLINE_DEGREE)
@@ -59,7 +87,7 @@ class Greedy(RobotAlgorithm):
         rx = scipy_interpolate.splev(ipl_t, x_list)
         ry = scipy_interpolate.splev(ipl_t, y_list)
 
-        return list(zip(rx, ry))
+        return rx, ry
 
     def next(self, pos) -> tuple:
 

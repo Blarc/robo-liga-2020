@@ -101,14 +101,6 @@ for tmpGoal in targetList:
 
 gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
 controller = Controller(initialState=State.IDLE)
-endPosition = (1000, 500)
-
-algorithm = GreedyAlgorithm(gameData)
-
-
-targetTuple = algorithm.run((gameData.homeRobot.pos.x, gameData.homeRobot.pos.y), endPosition, gameData)
-
-target = Point(targetTuple[0], targetTuple[1])
 
 robotNearTargetOld = False
 
@@ -133,8 +125,7 @@ while doMainLoop and not btn.down:
         print('Napaka v paketu, ponovni poskus ...')
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-        controller.update(gameData, target)
-        # print(target)
+        controller.update(gameData, targetList[targetIndex], 0)
 
         if gameData.gameOn and controller.isRobotAlive():
 
@@ -143,8 +134,6 @@ while doMainLoop and not btn.down:
 
             if controller.state == State.IDLE:
                 # print(State.IDLE)
-
-                # controller.setSpeedToZero()
 
                 if not controller.atTargetEPS():
                     controller.state = State.DRIVE_STRAIGHT
@@ -156,19 +145,12 @@ while doMainLoop and not btn.down:
             # LOAD NEXT TARGET STATE
 
             elif controller.state == State.LOAD_NEXT_TARGET:
-                # print(State.LOAD_NEXT_TARGET)
+                print(State.LOAD_NEXT_TARGET)
 
-                targetTuple = algorithm.run((target.x, target.y), endPosition, gameData)
+                targetIndex += 1
+                if targetIndex >= len(targetList):
+                    targetIndex = 0
 
-                if targetTuple[0] == -1:
-                    controller.robotDie()
-
-                target = Point(targetTuple[0], targetTuple[1])
-
-                # targetIndex += 1
-                # if targetIndex >= len(targetList):
-                #     targetIndex = 0
-                #
                 controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #
@@ -179,24 +161,9 @@ while doMainLoop and not btn.down:
 
                 if controller.stateChanged:
                     controller.resetPIDStraight()
-                    timerNearTarget = TIMER_NEAR_TARGET
-
-                if not robotNearTargetOld and controller.atTargetNEAR():
-                    timerNearTarget = TIMER_NEAR_TARGET
-
-                if controller.atTargetNEAR():
-                    timerNearTarget = timerNearTarget - loopTime
-
-                robotNearTargetOld = controller.atTargetNEAR()
 
                 if controller.atTargetHIST():
-                    # controller.setSpeedToZero()
                     controller.state = State.LOAD_NEXT_TARGET
-
-                elif timerNearTarget < 0:
-                    print("NAPAKA")
-                    controller.setSpeedToZero()
-                    controller.state = State.TURN
 
                 else:
                     controller.updatePIDStraight()

@@ -2,7 +2,8 @@ import math
 from collections import deque
 
 from Chassis import Chassis
-from Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX
+from Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX, \
+    RADIUS_TURN_PENALTY, SPEED_TURN_PENALTY, DERIVATIVE_QUEUE_LENGTH
 from Entities import GameData, Point, State, HiveTypeEnum, Hive
 from PidController import PidController
 
@@ -19,9 +20,11 @@ class Controller:
         self.speedLeftOld = 0
 
         self.target = Point(0, 0)
+        self.derivative = 0.0
 
         self.robotDirTargetHist = deque([180.0] * HIST_QUEUE_LENGTH)
         self.robotDistTargetHist = deque([math.inf] * HIST_QUEUE_LENGTH)
+        self.robotDerivativeHist = deque([0.0] * DERIVATIVE_QUEUE_LENGTH)
 
         self.targetDistance = 9999
         self.targetAngle = 9999
@@ -36,7 +39,7 @@ class Controller:
         self.pidController = PidController()
         self.chassis = Chassis()
 
-    def update(self, gameData: GameData, target: Point):
+    def update(self, gameData: GameData, target: Point, derivative: float):
 
         if self.state != self.stateOld:
             self.stateChanged = True
@@ -46,6 +49,7 @@ class Controller:
 
         self.gameData = gameData
         self.target = target
+        self.derivative = derivative
 
         if gameData.homeRobot is not None:
             self.__pos = gameData.homeRobot.pos
@@ -59,6 +63,8 @@ class Controller:
                 self.robotDirTargetHist.append(self.targetAngle)
                 self.robotDistTargetHist.popleft()
                 self.robotDistTargetHist.append(self.targetDistance)
+                self.robotDerivativeHist.popleft()
+                self.robotDerivativeHist.append(self.derivative)
 
     def distance(self, point: Point) -> float:
         return self.__pos.distance(point)
@@ -85,6 +91,7 @@ class Controller:
             return min(self.gameData.diseasedHives, key=lambda hive: hive.pos.distance(self.__pos))
 
     def atTargetEPS(self) -> bool:
+        # return self.targetDistance < DIST_EPS - RADIUS_TURN_PENALTY * self.derivative
         return self.targetDistance < DIST_EPS
 
     def atTargetNEAR(self) -> bool:
@@ -115,6 +122,10 @@ class Controller:
         self.chassis.runMotors(0, 0)
 
     def runMotors(self) -> None:
+
+        # self.speedRight = self.speedRight - self.derivative * SPEED_TURN_PENALTY
+        # self.speedLeft = self.speedLeft - self.derivative * SPEED_TURN_PENALTY
+
         self.speedRight = round(min(max(self.speedRight, -SPEED_MAX), SPEED_MAX))
         self.speedLeft = round(min(max(self.speedLeft, -SPEED_MAX), SPEED_MAX))
 
@@ -145,6 +156,12 @@ class Controller:
         base = self.pidController.PIDForwardBase.update(self.targetDistance)
         turn = self.pidController.PIDForwardTurn.update(self.targetAngle)
 
+        # print("before: ", base)
+
+        # base = round(base + abs(sum(self.robotDerivativeHist)) * SPEED_TURN_PENALTY)
+
+        # print("after: ", base)
+
         base = min(max(base, -SPEED_BASE_MAX), SPEED_BASE_MAX)
         self.speedRight = -base - turn
         self.speedLeft = -base + turn
@@ -152,5 +169,3 @@ class Controller:
     def resetPIDStraight(self) -> None:
         self.pidController.PIDForwardBase.reset()
         self.pidController.PIDForwardTurn.reset()
-
-# controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)

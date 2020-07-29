@@ -12,7 +12,7 @@ class NodeType(Enum):
 
 
 class Potential(RobotAlgorithm):
-    NODE_SIZE = 250
+    NODE_SIZE = 50
     REPULSIVE_FACTOR = 1.0
     ATTRACTIVE_FACTOR = 1.2
 

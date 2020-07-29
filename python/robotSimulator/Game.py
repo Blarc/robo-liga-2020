@@ -41,7 +41,7 @@ class Game:
 
     def setupLive(self):
         SERVER_IP = "192.168.2.3:8088/game/"
-        GAME_ID = "93fb"
+        GAME_ID = "5f44"
 
         url = SERVER_IP + GAME_ID
         print('Vspostavljanje povezave z naslovom ' + url + ' ... ', end='', flush=True)
