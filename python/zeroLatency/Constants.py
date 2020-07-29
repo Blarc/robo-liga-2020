@@ -2,7 +2,7 @@ ROBOT_ID = 18
 # Naslov IP igralnega streĹľnika.
 SERVER_IP = "192.168.2.3:8088/game/"
 # Datoteka na igralnem streĹľniku s podatki o tekmi.
-GAME_ID = "efeb"
+GAME_ID = "d198"
 
 # Priklop motorjev na izhode.
 MOTOR_LEFT_PORT = 'outA'
@@ -40,3 +40,6 @@ DIST_NEAR = 250
 # (oddaljen manj kot DIST_NEAR), preden sproĹľimo varnostni mehanizem
 # in ga damo v stanje obraÄŤanja na mestu.
 TIMER_NEAR_TARGET = 3
+
+OBSTACLE_CHECK_WIDTH = 200
+OBSTACLE_CHECK_LENGTH = 1000

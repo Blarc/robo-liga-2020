@@ -11,16 +11,12 @@ from time import time
 
 from ev3dev.ev3 import Button
 
-from AStarAlgorithm import AStarAlgorithm
 from Connection import Connection
-from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
+from Constants import SERVER_IP, GAME_ID, ROBOT_ID
 from Controller import Controller
 from Entities import Team, GameData, State, Point
 
-from GreedyAlgorithm import GreedyAlgorithm
-
 # ------------------------------------------------------------------------------------------------------------------- #
-from PotentialsAlgorithm import Potential
 
 print('Priprava tipal ... ', end='', flush=True)
 btn = Button()
@@ -64,32 +60,8 @@ topRight2 = gameState['fields']['baskets']['team2']['topLeft']
 bottomRight2 = gameState['fields']['baskets']['team2']['bottomLeft']
 
 targetList = [
-    Point(bottomLeft2['x'], bottomLeft2['y']),
-    Point(bottomLeft2['x'], bottomLeft2['y'] + 100),
-    Point(bottomLeft2['x'], bottomLeft2['y'] + 200),
-    Point(bottomLeft2['x'], bottomLeft2['y'] + 300),
-    Point(bottomLeft2['x'], bottomLeft2['y'] + 400),
-    Point(topLeft2['x'], topLeft2['y']),
-    Point(1300, 1500),
-    Point(1400, 1500),
-    Point(1600, 900),
-    Point(1750, 1000),
-    Point(1800, 1100),
-    Point(2100, 1500),
-    Point(2200, 1500),
-    Point(topRight2['x'], topRight2['y']),
-    Point(topRight2['x'], topRight2['y'] - 100),
-    Point(topRight2['x'], topRight2['y'] - 200),
-    Point(topRight2['x'], topRight2['y'] - 300),
-    Point(topRight2['x'], topRight2['y'] - 400),
-    Point(bottomRight2['x'], bottomRight2['y']),
-    Point(2200, 500),
-    Point(2100, 500),
-    Point(1900, 900),
-    Point(1750, 1000),
-    Point(1600, 900),
-    Point(1400, 500),
-    Point(1300, 500)
+    Point(500, 1000),
+    Point(3000, 1000)
 ]
 
 print('Seznam ciljnih tock:')
@@ -101,18 +73,10 @@ for tmpGoal in targetList:
 
 gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
 controller = Controller(initialState=State.IDLE)
-endPosition = (1000, 500)
-
-algorithm = GreedyAlgorithm(gameData)
-
-
-targetTuple = algorithm.run((gameData.homeRobot.pos.x, gameData.homeRobot.pos.y), endPosition, gameData)
-
-target = Point(targetTuple[0], targetTuple[1])
-
-robotNearTargetOld = False
 
 targetIndex = 0
+target = targetList[targetIndex]
+
 timeOld = time()
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -134,7 +98,7 @@ while doMainLoop and not btn.down:
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
         controller.update(gameData, target)
-        # print(target)
+        controller.getClosesObstacleOnPath()
 
         if gameData.gameOn and controller.isRobotAlive():
 
@@ -142,12 +106,10 @@ while doMainLoop and not btn.down:
             # IDLE STATE
 
             if controller.state == State.IDLE:
-                # print(State.IDLE)
-
-                # controller.setSpeedToZero()
+                print(State.IDLE)
 
                 if not controller.atTargetEPS():
-                    controller.state = State.DRIVE_STRAIGHT
+                    controller.state = State.CHECK_OBSTACLES
                     robotNearTargetOld = False
                 else:
                     controller.state = State.LOAD_NEXT_TARGET
@@ -156,20 +118,14 @@ while doMainLoop and not btn.down:
             # LOAD NEXT TARGET STATE
 
             elif controller.state == State.LOAD_NEXT_TARGET:
-                # print(State.LOAD_NEXT_TARGET)
+                print(State.LOAD_NEXT_TARGET)
 
-                targetTuple = algorithm.run((target.x, target.y), endPosition, gameData)
+                if targetIndex < len(targetList):
+                    targetIndex += 1
+                else:
+                    targetIndex = 0
 
-                if targetTuple[0] == -1:
-                    controller.robotDie()
-
-                target = Point(targetTuple[0], targetTuple[1])
-
-                # targetIndex += 1
-                # if targetIndex >= len(targetList):
-                #     targetIndex = 0
-                #
-                controller.state = State.DRIVE_STRAIGHT
+                controller.state = State.CHECK_OBSTACLES
 
             # ------------------------------------------------------------------------------------------------------- #
             # DRIVE STRAIGHT STATE
@@ -179,28 +135,25 @@ while doMainLoop and not btn.down:
 
                 if controller.stateChanged:
                     controller.resetPIDStraight()
-                    timerNearTarget = TIMER_NEAR_TARGET
-
-                if not robotNearTargetOld and controller.atTargetNEAR():
-                    timerNearTarget = TIMER_NEAR_TARGET
-
-                if controller.atTargetNEAR():
-                    timerNearTarget = timerNearTarget - loopTime
-
-                robotNearTargetOld = controller.atTargetNEAR()
 
                 if controller.atTargetHIST():
                     # controller.setSpeedToZero()
                     controller.state = State.LOAD_NEXT_TARGET
 
-                elif timerNearTarget < 0:
-                    print("NAPAKA")
-                    controller.setSpeedToZero()
-                    controller.state = State.TURN
-
                 else:
                     controller.updatePIDStraight()
-                    controller.state = State.DRIVE_STRAIGHT
+                    controller.state = State.CHECK_OBSTACLES
+
+            # ------------------------------------------------------------------------------------------------------- #
+            # CHECK OBSTACLES STATE
+
+            elif controller.state == State.CHECK_OBSTACLES:
+                print(State.CHECK_OBSTACLES)
+                if controller.getClosesObstacleOnPath():
+                    controller.robotDie()
+
+                controller.state = State.DRIVE_STRAIGHT
+
 
             # ------------------------------------------------------------------------------------------------------- #
             # SPIN MOTORS

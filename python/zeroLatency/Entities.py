@@ -15,6 +15,20 @@ class Point:
     def distance(self, point: 'Point') -> float:
         return math.sqrt((point.x - self.x) ** 2 + (point.y - self.y) ** 2)
 
+    def transpose(self, direction, length) -> 'Point':
+        if direction < 0:
+            direction = -direction
+        else:
+            direction = 360 - direction
+
+        x = self.x
+        y = self.y
+
+        x += (math.cos(math.radians(direction))) * length
+        y -= (math.sin(math.radians(direction))) * length
+
+        return Point(x, y)
+
 
 class Field:
     def __init__(self, data: Dict):
@@ -51,6 +65,7 @@ class State(Enum):
     TURN = 92
     DRIVE_STRAIGHT = 93
     ALGORITHM = 94
+    CHECK_OBSTACLES = 95
     DUMMY = 123
 
 
