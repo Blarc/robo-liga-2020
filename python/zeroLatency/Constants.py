@@ -2,7 +2,7 @@ ROBOT_ID = 18
 # Naslov IP igralnega streĹľnika.
 SERVER_IP = "192.168.2.3:8088/game/"
 # Datoteka na igralnem streĹľniku s podatki o tekmi.
-GAME_ID = "efeb"
+GAME_ID = "d198"
 
 # Priklop motorjev na izhode.
 MOTOR_LEFT_PORT = 'outA'

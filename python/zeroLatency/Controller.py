@@ -153,4 +153,29 @@ class Controller:
         self.pidController.PIDForwardBase.reset()
         self.pidController.PIDForwardTurn.reset()
 
-# controller.setStates(State.GET_BAD_APPLE,State.GET_APPLE)
+    def getAngleApprox(self):
+        x = 0
+        y = 0
+
+        if 22.5 <= self.__dir < 67.5:
+            x -= 1
+            y -= 1
+        elif 67.5 <= self.__dir < 112.5:
+            x -= 1
+        elif 112.5 <= self.__dir < 157.5:
+            x += 1
+            y -= 1
+        elif 157.5 <= self.__dir or self.__dir < -157.5:
+            x += 1
+        elif -157.5 <= self.__dir < -112.5:
+            x += 1
+            y += 1
+        elif -112.5 <= self.__dir < -67.5:
+            y += 1
+        elif -67.5 <= self.__dir < -22.5:
+            x -= 1
+            y += 1
+        elif -22.5 <= self.__dir or self.__dir < 22.5:
+            y -= 1
+
+        return x, y

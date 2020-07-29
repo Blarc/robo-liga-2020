@@ -11,16 +11,13 @@ from time import time
 
 from ev3dev.ev3 import Button
 
-from AStarAlgorithm import AStarAlgorithm
 from Connection import Connection
-from Constants import SERVER_IP, GAME_ID, ROBOT_ID, TIMER_NEAR_TARGET
+from Constants import SERVER_IP, GAME_ID, ROBOT_ID
 from Controller import Controller
 from Entities import Team, GameData, State, Point
-
 from GreedyAlgorithm import GreedyAlgorithm
 
 # ------------------------------------------------------------------------------------------------------------------- #
-from PotentialsAlgorithm import Potential
 
 print('Priprava tipal ... ', end='', flush=True)
 btn = Button()
@@ -106,11 +103,9 @@ endPosition = (1000, 500)
 algorithm = GreedyAlgorithm(gameData)
 
 
-targetTuple = algorithm.run((gameData.homeRobot.pos.x, gameData.homeRobot.pos.y), endPosition, gameData)
+targetTuple = algorithm.run((gameData.homeRobot.pos.x, gameData.homeRobot.pos.y), endPosition, (1, 0))
 
 target = Point(targetTuple[0], targetTuple[1])
-
-robotNearTargetOld = False
 
 targetIndex = 0
 timeOld = time()
@@ -141,7 +136,7 @@ while doMainLoop and not btn.down:
             # IDLE STATE
 
             if controller.state == State.IDLE:
-                # print(State.IDLE)
+                print(State.IDLE)
 
                 # controller.setSpeedToZero()
 
@@ -155,19 +150,14 @@ while doMainLoop and not btn.down:
             # LOAD NEXT TARGET STATE
 
             elif controller.state == State.LOAD_NEXT_TARGET:
-                # print(State.LOAD_NEXT_TARGET)
+                print(State.LOAD_NEXT_TARGET)
 
-                targetTuple = algorithm.run((target.x, target.y), endPosition, gameData)
+                targetTuple = algorithm.run((target.x, target.y), endPosition, controller.getAngleApprox())
 
                 if targetTuple[0] == -1:
                     controller.robotDie()
 
                 target = Point(targetTuple[0], targetTuple[1])
-
-                # targetIndex += 1
-                # if targetIndex >= len(targetList):
-                #     targetIndex = 0
-                #
                 controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #
@@ -178,24 +168,10 @@ while doMainLoop and not btn.down:
 
                 if controller.stateChanged:
                     controller.resetPIDStraight()
-                    timerNearTarget = TIMER_NEAR_TARGET
-
-                if not robotNearTargetOld and controller.atTargetNEAR():
-                    timerNearTarget = TIMER_NEAR_TARGET
-
-                if controller.atTargetNEAR():
-                    timerNearTarget = timerNearTarget - loopTime
-
-                robotNearTargetOld = controller.atTargetNEAR()
 
                 if controller.atTargetHIST():
                     # controller.setSpeedToZero()
                     controller.state = State.LOAD_NEXT_TARGET
-
-                elif timerNearTarget < 0:
-                    print("NAPAKA")
-                    controller.setSpeedToZero()
-                    controller.state = State.TURN
 
                 else:
                     controller.updatePIDStraight()
