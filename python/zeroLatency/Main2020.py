@@ -134,7 +134,6 @@ while doMainLoop and not btn.down:
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
         controller.update(gameData, target)
-        # print(target)
 
         if gameData.gameOn and controller.isRobotAlive():
 
