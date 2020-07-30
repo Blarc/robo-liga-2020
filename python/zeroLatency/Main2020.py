@@ -98,7 +98,6 @@ while doMainLoop and not btn.down:
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
         controller.update(gameData, target)
-        controller.getClosesObstacleOnPath()
 
         if gameData.gameOn and controller.isRobotAlive():
 
@@ -118,12 +117,14 @@ while doMainLoop and not btn.down:
             # LOAD NEXT TARGET STATE
 
             elif controller.state == State.LOAD_NEXT_TARGET:
-                print(State.LOAD_NEXT_TARGET)
+                # print(State.LOAD_NEXT_TARGET)
 
-                if targetIndex < len(targetList):
-                    targetIndex += 1
-                else:
-                    targetIndex = 0
+                # if targetIndex < len(targetList):
+                #     targetIndex += 1
+                # else:
+                #     targetIndex = 0
+
+                target = targetList[0]
 
                 controller.state = State.CHECK_OBSTACLES
 
@@ -148,12 +149,15 @@ while doMainLoop and not btn.down:
             # CHECK OBSTACLES STATE
 
             elif controller.state == State.CHECK_OBSTACLES:
-                print(State.CHECK_OBSTACLES)
-                if controller.getClosesObstacleOnPath():
-                    controller.robotDie()
+                # print(State.CHECK_OBSTACLES)
+
+                obstacle = controller.getFirstObstacleOnPath()
+
+                if controller.obstacleOnPath():
+                    target = controller.getDodgePoint(obstacle.pos, target)
+                    print(target)
 
                 controller.state = State.DRIVE_STRAIGHT
-
 
             # ------------------------------------------------------------------------------------------------------- #
             # SPIN MOTORS

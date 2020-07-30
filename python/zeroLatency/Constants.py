@@ -9,10 +9,10 @@ MOTOR_LEFT_PORT = 'outA'
 MOTOR_RIGHT_PORT = 'outD'
 
 # NajviĹˇja dovoljena hitrost motorjev (teoretiÄŤno je to 1000).
-SPEED_MAX = 200
+SPEED_MAX = 500
 # NajviĹˇja dovoljena nazivna hitrost motorjev pri voĹľnji naravnost.
 # Naj bo manjĹˇa kot SPEED_MAX, da ima robot Ĺˇe moĹľnost zavijati.
-SPEED_BASE_MAX = 100
+SPEED_BASE_MAX = 400
 
 # Parametri za PID
 # ObraÄŤanje na mestu in zavijanje med voĹľnjo naravnost
@@ -21,7 +21,7 @@ PID_TURN_KI = 0.0
 PID_TURN_KD = 0.0
 PID_TURN_INT_MAX = 100
 # Nazivna hitrost pri voĹľnji naravnost.
-PID_STRAIGHT_KP = 1.0
+PID_STRAIGHT_KP = 4.0
 PID_STRAIGHT_KI = 0.0
 PID_STRAIGHT_KD = 0.0
 PID_STRAIGHT_INT_MAX = 100
@@ -41,5 +41,8 @@ DIST_NEAR = 250
 # in ga damo v stanje obraÄŤanja na mestu.
 TIMER_NEAR_TARGET = 3
 
-OBSTACLE_CHECK_WIDTH = 200
-OBSTACLE_CHECK_LENGTH = 1000
+OBSTACLE_CHECK_WIDTH = 100
+OBSTACLE_CHECK_LENGTH = 1500
+
+# Mora biti vsaj večji od "OBSTACLE_CHECK_WIDTH"
+OBSTACLE_DODGE_SIZE = 300

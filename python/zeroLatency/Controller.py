@@ -3,7 +3,7 @@ from collections import deque
 
 from Chassis import Chassis
 from Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX, OBSTACLE_CHECK_WIDTH, \
-    OBSTACLE_CHECK_LENGTH
+    OBSTACLE_CHECK_LENGTH, OBSTACLE_DODGE_SIZE
 from Entities import GameData, Point, State, HiveTypeEnum, Hive
 from PidController import PidController
 
@@ -34,6 +34,8 @@ class Controller:
         self.stateOld = initialState
 
         self.gameData = None
+        self.fieldPolygon = Polygon([(0, 0), (3555, 0), (0, 2055), (3555, 2055)])
+        self.fieldPolygonPadded = Polygon([(200, 200), (3355, 200), (200, 1855), (3355, 1855)])
 
         self.stateChanged = False
 
@@ -184,11 +186,11 @@ class Controller:
 
         return x, y
 
-    def getClosesObstacleOnPath(self):
-        bottomLeft = self.__pos.transpose(self.__dir - 90, OBSTACLE_CHECK_WIDTH)
-        bottomRight = self.__pos.transpose(self.__dir + 90, OBSTACLE_CHECK_WIDTH)
-        topRight = bottomRight.transpose(self.__dir, OBSTACLE_CHECK_LENGTH)
-        topLeft = bottomLeft.transpose(self.__dir, OBSTACLE_CHECK_LENGTH)
+    def getFirstObstacleOnPath(self, direction):
+        bottomLeft = self.__pos.transpose(self.__dir + direction - 90, OBSTACLE_CHECK_WIDTH)
+        bottomRight = self.__pos.transpose(self.__dir + direction + 90, OBSTACLE_CHECK_WIDTH)
+        topRight = bottomRight.transpose(self.__dir + direction, OBSTACLE_CHECK_LENGTH)
+        topLeft = bottomLeft.transpose(self.__dir + direction, OBSTACLE_CHECK_LENGTH)
 
         bottomLeft = (bottomLeft.x, bottomLeft.y)
         bottomRight = (bottomRight.x, bottomRight.y)
@@ -201,4 +203,39 @@ class Controller:
             hivePos = hive.pos
             if polygon.contains(SPoint(hivePos.x, hivePos.y)):
                 print("Hive in zone!")
-                return True
+                return hive
+
+        return None
+
+    def obstacleOnPath(self) -> bool:
+        return self.getFirstObstacleOnPath(0) is not None
+
+    def obstacleOnPathDir(self, direction):
+        return self.getFirstObstacleOnPath(direction) is not None
+
+    def getDodgePoint(self, obstaclePos, targetPos):
+
+        left = None
+        right = None
+
+        for direction in range(10, 90, 10):
+            if not self.obstacleOnPathDir(direction):
+
+
+
+
+        left = obstaclePos.transpose(self.__dir - 130, OBSTACLE_DODGE_SIZE)
+        right = obstaclePos.transpose(self.__dir + 130, OBSTACLE_DODGE_SIZE)
+
+        return min([left, right], key=lambda dodgePoint: self.calcDodgePointCost(dodgePoint, targetPos))
+
+    def calcDodgePointCost(self, dodgePoint, targetPos):
+
+        if dodgePoint is not None and self.fieldPolygonPadded.contains(SPoint(dodgePoint.x, dodgePoint.y)):
+            return self.euclidean(dodgePoint, targetPos)
+
+        return float('inf')
+
+    @staticmethod
+    def euclidean(a: Point, b: Point):
+        return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
