@@ -103,9 +103,7 @@ endPosition = (1000, 500)
 algorithm = GreedyAlgorithm(gameData)
 
 
-targetTuple = algorithm.run((gameData.homeRobot.pos.x, gameData.homeRobot.pos.y), endPosition, (1, 0))
-
-target = Point(targetTuple[0], targetTuple[1])
+targets = [Point(a[0], a[1]) for a in algorithm.run((gameData.homeRobot.pos.x, gameData.homeRobot.pos.y), endPosition, (1, 0))]
 
 targetIndex = 0
 timeOld = time()
@@ -128,9 +126,10 @@ while doMainLoop and not btn.down:
         print('Napaka v paketu, ponovni poskus ...')
     else:
         gameData = GameData(gameState, homeTeamTag, enemyTeamTag)
-        controller.update(gameData, target)
+        controller.update(gameData, targets)
 
         if gameData.gameOn and controller.isRobotAlive():
+            print("loop time: ", loopTime)
 
             # ------------------------------------------------------------------------------------------------------- #
             # IDLE STATE
@@ -152,12 +151,15 @@ while doMainLoop and not btn.down:
             elif controller.state == State.LOAD_NEXT_TARGET:
                 print(State.LOAD_NEXT_TARGET)
 
-                targetTuple = algorithm.run((target.x, target.y), endPosition, controller.getAngleApprox())
+                timeIt = time()
+                targets = [Point(a[0], a[1]) for a in algorithm.run((targets[0].x, targets[0].y), endPosition, controller.getAngleApprox())]
+                print("algo time: ", time() - timeIt)
 
-                if targetTuple[0] == -1:
+                if targets[0].x == -1:
                     controller.robotDie()
 
-                target = Point(targetTuple[0], targetTuple[1])
+                target = targets[0]
+
                 controller.state = State.DRIVE_STRAIGHT
 
             # ------------------------------------------------------------------------------------------------------- #

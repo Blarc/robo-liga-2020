@@ -20,7 +20,7 @@ class GreedyAlgorithm:
     GAME_HEIGHT = 2000
     GAME_WIDTH = 3500
 
-    NODE_SIZE = 125
+    NODE_SIZE = 100
     HIVE_RADIUS = 2
 
     LOOK_AHEAD = 3
@@ -43,7 +43,16 @@ class GreedyAlgorithm:
 
         self.nodeMap[pos[1]][pos[0]] = NodeType.VISITED.value
 
-        return self.toGamePoint(self.next(pos, end, dirPoint))
+        first = self.next(pos, end, dirPoint)
+        self.nodeMap[first[1]][first[0]] = NodeType.VISITED.value
+        second = self.next(first, end, dirPoint)
+        self.nodeMap[second[1]][second[0]] = NodeType.VISITED.value
+        third = self.next(second, end, dirPoint)
+
+        self.nodeMap[first[1]][first[0]] = NodeType.EMPTY.value
+        self.nodeMap[second[1]][second[0]] = NodeType.EMPTY.value
+
+        return [self.toGamePoint(first), self.toGamePoint(second), self.toGamePoint(third)]
 
     def next(self, pos, endPos, dirPoint: tuple) -> tuple:
 

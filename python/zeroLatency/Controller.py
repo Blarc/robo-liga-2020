@@ -1,5 +1,6 @@
 import math
 from collections import deque
+from typing import List
 
 from Chassis import Chassis
 from Constants import HIST_QUEUE_LENGTH, DIST_EPS, DIST_NEAR, DIR_EPS, SPEED_BASE_MAX, SPEED_MAX
@@ -19,6 +20,7 @@ class Controller:
         self.speedLeftOld = 0
 
         self.target = Point(0, 0)
+        self.targets = []
 
         self.robotDirTargetHist = deque([180.0] * HIST_QUEUE_LENGTH)
         self.robotDistTargetHist = deque([math.inf] * HIST_QUEUE_LENGTH)
@@ -36,7 +38,7 @@ class Controller:
         self.pidController = PidController()
         self.chassis = Chassis()
 
-    def update(self, gameData: GameData, target: Point):
+    def update(self, gameData: GameData, targets: List[Point]):
 
         if self.state != self.stateOld:
             self.stateChanged = True
@@ -45,7 +47,8 @@ class Controller:
         self.stateOld = self.state
 
         self.gameData = gameData
-        self.target = target
+        self.target = targets[0]
+        self.targets = targets
 
         if gameData.homeRobot is not None:
             self.__pos = gameData.homeRobot.pos
@@ -142,10 +145,26 @@ class Controller:
 
     def updatePIDStraight(self) -> None:
 
-        base = self.pidController.PIDForwardBase.update(self.targetDistance)
+        secondAngle = sum([abs(self.angle(target)) for target in self.targets[1:]])
+
+        if secondAngle < 15:
+            base = -200
+        elif secondAngle < 40:
+            base = -150
+        elif secondAngle < 90:
+            base = -100
+        else:
+            base = -50
+
+        # base = self.pidController.PIDForwardBase.update(1 / abs(self.targetAngle))
         turn = self.pidController.PIDForwardTurn.update(self.targetAngle)
 
+
         base = min(max(base, -SPEED_BASE_MAX), SPEED_BASE_MAX)
+        # base += self.targetAngle * 1.0
+
+        print("base: ", base, "turn: ", turn, "targetDistance: ", self.targetDistance, "targetAngle: ", self.targetAngle, "secondAngle: ", secondAngle)
+
         self.speedRight = -base - turn
         self.speedLeft = -base + turn
 
